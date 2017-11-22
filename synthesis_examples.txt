@@ -1,3 +1,5 @@
+*** graph problem from cozy ***
+
 record Edge { src: Int, dst: Int }
 graph: SetOf<Edge>
 query findEdges(n: int) = filter (\e -> e.src == n || e.dst == n) graph
@@ -32,6 +34,8 @@ filter (\e -> (e.src != e.dst && e.src == n) || e.dst == n) graph ~
 filter (e.src == n) graph
 
 -------------------------------------------------------------------------
+*** top frequent word ***
+
 record Word { value: String }
 words: Collection<Word>
 query count(val: String) = size (filter (\w -> w.value == val) words)
