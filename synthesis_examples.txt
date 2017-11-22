@@ -1,0 +1,69 @@
+record Edge { src: Int, dst: Int }
+graph: SetOf<Edge>
+query findEdges(n: int) = filter (\e -> e.src == n || e.dst == n) graph
+
+* Solution
+graph: (HashTable<Int, Edge>, HashTable<Int, Edge>)
+findEdges n = Set.Union (HashTable.lookup n table1) (HashTable.lookup n table2)
+where
+    table1 = HashTable.build (\e -> (e.dst, e)) (filter (\e -> e.src != e.dst) _graph)
+    table2 = HashTable.build (\e -> (e.src, e)) _graph
+
+findEdges n ~
+Set.Union
+    ( HashTable.lookup n (HashTable.build (\e -> (e.dst, e)) (filter (\e -> e.src != e.dst) graph)) )
+    ( HashTable.lookup n (HashTable.build (\e -> (e.src, e)) graph) ) ~
+Set.Union
+    map (\(k, v) -> v) ( filter (\(k,v) -> k == n) ( map (\e -> (e.dst, e)) (filter (\e -> e.src != e.dst) graph) ) )
+    map (\(k, v) -> v) ( filter (\(k,v) -> k == n) ( map (\e -> (e.src, e)) graph ) ) ~
+Set.Union
+    map (\(k, v) -> v) ( filter (\(k,v) -> k == n) ( map (\e -> if e.src != e.dst then (e.dst, e) else None) )
+    map (\(k, v) -> v) ( map (\e -> if e.src == n then (e.src, e) else None ) graph) ~
+Set.Union
+    map (\(k, v) -> if k == n then v else None) (map (\e -> if e.src != e.dst then (e.dst, e) else None) graph)
+    map (\e -> if e.src == n then e else None) graph) ~
+Set.Union
+    map (\e -> if e.src != e.dst && e.dst == n then e) graph)
+    map (\e -> if e.src == n then e else None) graph) ~
+Set.Union
+    filter (\e -> e.src != e.dst && e.dst == n) graph
+    filter (\e -> e.src == n) graph ~
+filter (\e -> (e.src != e.dst && e.src == n) || e.dst == n) graph ~
+filter (e.src == n) graph
+
+-------------------------------------------------------------------------
+record Word { value: String }
+words: Collection<Word>
+query count(val: String) = size (filter (\w -> w.value == val) words)
+query topFrequent() =  maximize (\w -> count w.value) words
+
+* Solution
+words: Heap<Word> (\w -> Map.get w countMap)
+countMap: Map<Word, Int> (\w -> (w, count w.value))
+topFrequent = Heap.pop words
+
+topFrequent ~
+Heap.pop (Heap.build (\w -> Map.get w (Map.build (\w -> (w, count w.value)) [words])) [words]) ~
+Heap.pop (Heap.build (\w -> count w.value) [words]) ~
+maximize (\w -> count w.value) [words]
+
+
+* Solution
+words: List<Word>
+topFrequent = List.maximize (\w -> count w.value) words
+
+topFrequent ~
+List.maximize (\w -> count w.value) (List.build [words]) ~
+maximize (\w -> count w.value) [words]
+
+
+* Solution
+words: SortedDescList<Word> (\w -> count w.value)
+topFrequent = List.head words
+
+topFrequent ~
+List.head (SortedDescList.build (\w -> count w.value) [words]) ~
+maximize (\w -> count w.value) words
+
+-------------------------------------------------------------------------
+
