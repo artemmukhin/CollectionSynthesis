@@ -8,8 +8,8 @@ query findEdges(n: int) = filter (\e -> e.src == n || e.dst == n) graph
 graph: (HashTable<Int, Edge>, HashTable<Int, Edge>)
 findEdges n = Set.Union (HashTable.lookup n table1) (HashTable.lookup n table2)
 where
-    table1 = HashTable.build (\e -> (e.dst, e)) (filter (\e -> e.src != e.dst) _graph)
-    table2 = HashTable.build (\e -> (e.src, e)) _graph
+    table1 = HashTable.build (\e -> (e.dst, e)) (filter (\e -> e.src != e.dst) [graph])
+    table2 = HashTable.build (\e -> (e.src, e)) [graph]
 
 findEdges n ~
 Set.Union

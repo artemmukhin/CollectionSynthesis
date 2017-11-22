@@ -3,6 +3,8 @@ Number <- Int, Float
 String
 Bool
 
+*** Внешние коллекции ***
+
 * Collection<T>
 map             :: (T -> T) -> Collection<T> -> Collection<T>
 filter          :: (T -> Bool) -> Collection<T> -> Collection<T>
@@ -10,8 +12,19 @@ size            :: Collection<T> -> Int
 maximize        :: (T -> Number) -> T
 minimize        :: (T -> Number) -> T
 
+* IndexedCollection<T>
+map             :: (T -> T) -> IndexedCollection<T> -> IndexedCollection<T>
+filter          :: (T -> Bool) -> IndexedCollection<T> -> IndexedCollection<T>
+size            :: IndexedCollection<T> -> Int
+maximize        :: (T -> Number) -> T
+minimize        :: (T -> Number) -> T
+get             :: Int -> IndexedCollection<T> -> T
+foldl           :: (T' -> T -> T') -> T' -> T -> T'
 
-* Внутренние коллекции:
+
+*** Внутренние коллекции ***
+
+** List-like **
 
 * List<T>
 List.build      :: [T] -> List<T>
@@ -51,12 +64,31 @@ SortedDescList.maximize   :: (T -> Number) -> SortedDescList<T> -> T
 SortedDescList.minimize   :: (T -> Number) -> SortedDescList<T> -> T
 SortedDescList.add        :: T -> SortedDescList<T> -> SortedDescList<T>
 
+
+** Array-like **
+
 * Array<T>
 Array.build     :: [T] -> Array<T>
 Array.map       :: (T -> T') -> Array<T> -> Array<T'>
 Array.size      :: Array<T> -> Int
 Array.toList    :: Array<T> -> List<T>
 Array.get       :: Int -> Array<T> -> T
+Array.set       :: Int -> T -> Array<T>
+
+* SqrtDecArray<T, assoc (T -> T')>
+SqrtDecArray.build  :: (T -> T') -> Array<T> -> SqrtDecArray<T>
+SqrtDecArray.eval   :: Int -> Int -> T'
+SqrtDecArray.get    :: Int -> T
+SqrtDecArray.set    :: Int -> T -> SqrtDecArray<T>
+
+* FenwickTree<T, assoc comm invert (T -> T')>
+FenwickTree.build   :: (T -> T') -> Array<T> -> FenwickTree<T>
+FenwickTree.eval    :: Int -> Int -> T'
+FenwickTree.get     :: Int -> T
+FenwickTree.set     :: Int -> FenwickTree<T>
+
+
+** Other **
 
 * Set<T>
 Set.build       :: [T] -> Set<T>
