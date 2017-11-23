@@ -51,6 +51,7 @@ SortedAscList.filter     :: (T -> Bool) -> SortedAscList<T> -> SortedAscList<T> 
 SortedAscList.size       :: SortedAscList<T> -> Int                                 O(1)
 SortedAscList.maximize   :: (T -> Number) -> SortedAscList<T> -> T                  O(n)
 SortedAscList.minimize   :: (T -> Number) -> SortedAscList<T> -> T                  O(n)
+SortedAscList.find       :: T -> SortedAscList<T> -> T                              O(log n)
 SortedAscList.contains   :: T -> SortedAscList<T> -> Bool                           O(log n)
 SortedAscList.add        :: T -> SortedAscList<T> -> SortedAscList<T>               O(log n)
 
@@ -94,13 +95,15 @@ FenwickTree.set     :: Int -> FenwickTree<T>                        O(log n)
 ** Other **
 
 * HashSet<T>
-Set.build       :: [T] -> Set<T>
-Set.filter      :: (T -> Bool) -> Set<T> -> Set<T>      O(n)
-Set.size        :: Set<T> -> Int                        O(1)
-Set.contains    :: T -> Set<T> -> Bool                  O(1)
-Set.maximize    :: (T -> Number) -> Set<T> -> T         O(n)
-Set.minimize    :: (T -> Number) -> Set<T> -> T         O(n)
-Set.add         :: T -> Set<T> -> Set<T>                
+HashSet.build       :: [T] -> HashSet<T>
+HashSet.filter      :: (T -> Bool) -> HashSet<T> -> HashSet<T>      O(n)
+HashSet.size        :: HashSet<T> -> Int                            O(1)
+HashSet.find        :: T -> HashSet<T>                              O(1)
+HashSet.contains    :: T -> HashSet<T> -> Bool                      O(1)
+HashSet.maximize    :: (T -> Number) -> HashSet<T> -> T             O(n)
+HashSet.minimize    :: (T -> Number) -> HashSet<T> -> T             O(n)
+HashSet.add         :: T -> HashSet<T> -> HashSet<T>                
+HashSet.union       :: HashSet<T> -> HashSet<T> -> HashSet<T>       O(n)
 
 * TreeSet<T>
 Set.build       :: [T] -> Set<T>

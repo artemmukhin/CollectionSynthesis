@@ -1,37 +1,86 @@
+*** some of reduce rules ***
+filter p (map f xs)          =  mapFilter (p . f) f xs  =  map (\x -> if p (f x) then f x else None)
+map f (filter p xs)          =  mapFilter p       f xs  =  map (\x -> if p x then f x else None)
+filter p' (mapFilter p f xs) =  mapFilter (\x -> p x && p' x) f xs
+map f' (mapFilter p f)       =  mapFilter p (f' . f) xs
+
+Map.get x xs   ~ snd ( filter (\(x1, _) -> x1 == x) xs )
+Map.build f xs ~ map f xs
+
 *** graph problem from cozy ***
 
 record Edge { src: Int, dst: Int }
 graph: SetOf<Edge>
 query findEdges(n: int) = filter (\e -> e.src == n || e.dst == n) graph
 
-* Solution
-graph: (HashTable<Int, Edge>, HashTable<Int, Edge>)
-findEdges n = Set.Union (HashTable.lookup n table1) (HashTable.lookup n table2)
+
+* Solution O(n)
+graphList: List<Edge>
+findEdges n = filter (\e -> e.src == n || e.dst == n) graphList
+
+
+* Solution < O(n)
+table1: Map<Int, HashSet<Edge>>
+table2: Map<Int, HashSet<Edge>>
+findEdges n = Set.Union (Map.get n table1) (Map.get n table2)
 where
-    table1 = HashTable.build (\e -> (e.dst, e)) (filter (\e -> e.src != e.dst) [graph])
-    table2 = HashTable.build (\e -> (e.src, e)) [graph]
+    table1 = Map.build ( \e -> (e.src, filter (\e' -> e'.src == e.src) graph) ) graph
+    table2 = Map.build ( \e -> (e.dst, filter (\e' -> e'.dst == e.dst) graph) ) graph
+
 
 findEdges n ~
-Set.Union
-    ( HashTable.lookup n (HashTable.build (\e -> (e.dst, e)) (filter (\e -> e.src != e.dst) graph)) )
-    ( HashTable.lookup n (HashTable.build (\e -> (e.src, e)) graph) ) ~
-Set.Union
-    map (\(k, v) -> v) ( filter (\(k,v) -> k == n) ( map (\e -> (e.dst, e)) (filter (\e -> e.src != e.dst) graph) ) )
-    map (\(k, v) -> v) ( filter (\(k,v) -> k == n) ( map (\e -> (e.src, e)) graph ) ) ~
-Set.Union
-    map (\(k, v) -> v) ( filter (\(k,v) -> k == n) ( map (\e -> if e.src != e.dst then (e.dst, e) else None) )
-    map (\(k, v) -> v) ( map (\e -> if e.src == n then (e.src, e) else None ) graph) ~
-Set.Union
-    map (\(k, v) -> if k == n then v else None) (map (\e -> if e.src != e.dst then (e.dst, e) else None) graph)
-    map (\e -> if e.src == n then e else None) graph) ~
-Set.Union
-    map (\e -> if e.src != e.dst && e.dst == n then e) graph)
-    map (\e -> if e.src == n then e else None) graph) ~
-Set.Union
-    filter (\e -> e.src != e.dst && e.dst == n) graph
-    filter (\e -> e.src == n) graph ~
-filter (\e -> (e.src != e.dst && e.src == n) || e.dst == n) graph ~
-filter (e.src == n) graph
+HashSet.union
+    Map.get n ( Map.build ( \e -> (e.src, filter (\e' -> e'.src == e.src) graph) ) ) graph
+    Map.get n ( Map.build ( \e -> (e.dst, filter (\e' -> e'.dst == e.dst) graph) ) ) graph ~
+HashSet.union
+    map snd ( filter (\(src, _) -> src == n) (map ( \e -> (e.src, filter (\e' -> e'.src == e.src) graph) ) graph) )
+    map snd ( filter (\(dst, _) -> dst == n) (map ( \e -> (e.dst, filter (\e' -> e'.dst == e.dst) graph) ) graph) ) ~
+HashSet.union
+    map snd $ mapFilter (\e -> e.src == n) (\e -> (e.src, filter (\e' -> e'.src == e.src) graph)) graph
+    map snd $ mapFilter (\e -> e.dst == n) (\e -> (e.dst, filter (\e' -> e'.dst == e.dst) graph)) graph ~
+HashSet.union
+    mapFilter (\e -> e.src == n) (\e -> filter (\e' -> e'.src == e.src) graph) graph
+    mapFilter (\e -> e.dst == n) (\e -> filter (\e' -> e'.dst == e.dst) graph) graph ~
+HashSet.union
+    filter (\e -> e.src == n) graph
+    filter (\e -> e.dst == n) graph ~
+filter (\e -> e.src == n || e.dst == n) graph
+
+
+* Solution O(1)
+table1: Map<Int, HashSet<Edge>>
+table2: Map<Int, HashSet<Edge>>
+findEdges n = Set.Union (Map.get n table1) (Map.get n table2)
+where
+    table1 = Map.build ( \e -> (e.src, filter (\e' -> e'.src == e.src) graph) ) graph
+    table2 = Map.build ( \e -> (e.dst, filter (\e' -> e'.dst == e.dst) graph)) ) (filter (\e -> e.src != e.dst) graph)
+
+let graph' = (filter (\e -> e.src != e.dst) graph)
+
+findEdges n ~
+HashSet.union
+    Map.get n ( Map.build ( \e -> (e.src, filter (\e' -> e'.src == e.src) graph) ) ) graph
+    Map.get n ( Map.build ( \e -> (e.dst, filter (\e' -> e'.dst == e.dst) graph) ) ) graph' ~
+HashSet.union
+    map snd ( filter (\(src, _) -> src == n) (map ( \e -> (e.src, filter (\e' -> e'.src == e.src) graph) ) graph) )
+    map snd ( filter (\(dst, _) -> dst == n) (map ( \e -> (e.dst, filter (\e' -> e'.dst == e.dst) graph) ) graph') ) ~
+HashSet.union
+    map snd $ mapFilter (\e -> e.src == n) (\e -> (e.src, filter (\e' -> e'.src == e.src) graph)) graph
+    map snd $ mapFilter (\e -> e.dst == n) (\e -> (e.dst, filter (\e' -> e'.dst == e.dst) graph)) graph' ~
+HashSet.union
+    mapFilter (\e -> e.src == n) (\e -> filter (\e' -> e'.src == e.src) graph) graph
+    mapFilter (\e -> e.dst == n) (\e -> filter (\e' -> e'.dst == e.dst) graph) graph' ~
+HashSet.union
+    filter (\e -> e.src == n) graph
+    filter (\e -> e.dst == n) graph' ~
+HashSet.union
+    filter (\e -> e.src == n) graph
+    filter (\e -> e.dst == n) (filter (\e -> e.src != e.dst) graph) ~
+HashSet.union
+    filter (\e -> e.src == n) graph
+    filter (\e -> e.dst == n && e.src != e.dst) graph ~
+filter (\e -> e.src == n || (e.dst == n && e.src != e.dst)) graph ~
+filter (\e -> e.src == n || e.dst == n) graph
 
 -------------------------------------------------------------------------
 *** top frequent word ***
@@ -42,31 +91,34 @@ query count(val: String) = size (filter (\w -> w.value == val) words)
 query topFrequent() =  maximize (\w -> count w.value) words
 
 * Solution
-words: Heap<Word> (\w -> Map.get w countMap)
+wordsHeap: Heap<Word> (\w -> Map.get w countMap)
 countMap: Map<Word, Int> (\w -> (w, count w.value))
-topFrequent = Heap.pop words
+topFrequent = Heap.pop wordsHeap
 
 topFrequent ~
-Heap.pop (Heap.build (\w -> Map.get w (Map.build (\w -> (w, count w.value)) [words])) [words]) ~
-Heap.pop (Heap.build (\w -> count w.value) [words]) ~
-maximize (\w -> count w.value) [words]
+Heap.pop ( Heap.build (\w -> Map.get w (Map.build (\w1 -> (w1, count w.value)) words)) words ) ~
+Heap.pop ( Heap.build (\w -> map snd $ filter (\(w1, _) -> w1 == w) (map (\w1 -> (w1, count w.value)) words)) words ) ~
+Heap.pop ( Heap.build (\w -> map snd $ mapFilter (\w1 -> w1 == w) (\w1 -> (w1, count w1.value)) words) words ) ~
+Heap.pop ( Heap.build (\w -> map snd $ (\w -> (w, count w.value)) words ) ~
+Heap.pop ( Heap.build (\w -> count w.value) words ) ~
+maximize (\w -> count w.value) words
 
 
 * Solution
-words: List<Word>
-topFrequent = List.maximize (\w -> count w.value) words
+wordsList: List<Word>
+topFrequent = List.maximize (\w -> count w.value) wordsList
 
 topFrequent ~
-List.maximize (\w -> count w.value) (List.build [words]) ~
-maximize (\w -> count w.value) [words]
+List.maximize (\w -> count w.value) (List.build words) ~
+maximize (\w -> count w.value) words
 
 
 * Solution
-words: SortedDescList<Word> (\w -> count w.value)
-topFrequent = List.head words
+wordsList: SortedDescList<Word> (\w -> count w.value)
+topFrequent = List.head wordsList
 
 topFrequent ~
-List.head (SortedDescList.build (\w -> count w.value) [words]) ~
+List.head (SortedDescList.build (\w -> count w.value) words) ~
 maximize (\w -> count w.value) words
 
 -------------------------------------------------------------------------
