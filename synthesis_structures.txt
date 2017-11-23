@@ -28,75 +28,87 @@ foldl           :: (T' -> T -> T') -> T' -> T -> T'
 
 * List<T>
 List.build      :: [T] -> List<T>
-List.head       :: List<T> -> T
-List.tail       :: List<T> -> List<T>
-List.last       :: List<T> -> T
-List.map        :: (T -> T') -> List<T> -> List<T'>
-List.filter     :: (T -> Bool) -> List<T> -> List<T>
-List.sortAsc    :: (T -> Number) -> List<T> -> SortedAscList<T>
-List.sortDesc   :: (T -> Number) -> List<T> ->  SortedDescList<T>
-List.size       :: List<T> -> Int
-List.maximize   :: (T -> Number) -> List<T> -> T
-List.minimize   :: (T -> Number) -> List<T> -> T
-List.add        :: T -> List<T> -> List<T>
+List.head       :: List<T> -> T                                         O(1)
+List.tail       :: List<T> -> List<T>                                   O(1)
+List.last       :: List<T> -> T                                         O(1)
+List.map        :: (T -> T') -> List<T> -> List<T'>                     O(n)
+List.filter     :: (T -> Bool) -> List<T> -> List<T>                    O(n)
+List.sortAsc    :: (T -> Number) -> List<T> -> SortedAscList<T>         O(n * log n)
+List.sortDesc   :: (T -> Number) -> List<T> ->  SortedDescList<T>       O(n * log n)
+List.size       :: List<T> -> Int                                       O(1)
+List.maximize   :: (T -> Number) -> List<T> -> T                        O(n)
+List.minimize   :: (T -> Number) -> List<T> -> T                        O(n)
+List.contains   :: T -> List<T> -> Bool                                 O(n)
+List.add        :: T -> List<T> -> List<T>                              O(1)
 
 * SortedAscList<T, (T -> Number)>
-SortedAscList.build      :: (T -> Number) -> [T] -> SortedAscList<T>
-SortedAscList.head       :: SortedAscList<T> -> T
-SortedAscList.tail       :: SortedAscList<T> -> SortedAscList<T>
-SortedAscList.last       :: SortedAscList<T> -> T
-SortedAscList.map        :: (T -> T') -> SortedAscList<T> -> List<T'>
-SortedAscList.filter     :: (T -> Bool) -> SortedAscList<T> -> SortedAscList<T>
-SortedAscList.size       :: SortedAscList<T> -> Int
-SortedAscList.maximize   :: (T -> Number) -> SortedAscList<T> -> T
-SortedAscList.minimize   :: (T -> Number) -> SortedAscList<T> -> T
-SortedAscList.add        :: T -> SortedAscList<T> -> SortedAscList<T>
+SortedAscList.build      :: (T -> Number) -> [T] -> SortedAscList<T>                
+SortedAscList.head       :: SortedAscList<T> -> T                                   O(1)
+SortedAscList.tail       :: SortedAscList<T> -> SortedAscList<T>                    O(1)
+SortedAscList.last       :: SortedAscList<T> -> T                                   O(1)
+SortedAscList.map        :: (T -> T') -> SortedAscList<T> -> List<T'>               O(n)
+SortedAscList.filter     :: (T -> Bool) -> SortedAscList<T> -> SortedAscList<T>     O(n)
+SortedAscList.size       :: SortedAscList<T> -> Int                                 O(1)
+SortedAscList.maximize   :: (T -> Number) -> SortedAscList<T> -> T                  O(n)
+SortedAscList.minimize   :: (T -> Number) -> SortedAscList<T> -> T                  O(n)
+SortedAscList.contains   :: T -> SortedAscList<T> -> Bool                           O(log n)
+SortedAscList.add        :: T -> SortedAscList<T> -> SortedAscList<T>               O(log n)
 
 * SortedDescList<T, (T -> Number)>
 SortedDescList.build      :: (T -> Number) -> [T] -> SortedDescList<T>
-SortedDescList.head       :: SortedDescList<T> -> T
-SortedDescList.tail       :: SortedDescList<T> -> SortedDescList<T>
-SortedDescList.last       :: SortedDescList<T> -> T
-SortedDescList.map        :: (T -> T') -> SortedDescList<T> -> List<T'>
-SortedDescList.filter     :: (T -> Bool) -> SortedDescList<T> -> SortedDescList<T>
-SortedDescList.size       :: SortedDescList<T> -> Int
-SortedDescList.maximize   :: (T -> Number) -> SortedDescList<T> -> T
-SortedDescList.minimize   :: (T -> Number) -> SortedDescList<T> -> T
-SortedDescList.add        :: T -> SortedDescList<T> -> SortedDescList<T>
+SortedDescList.head       :: SortedDescList<T> -> T                                 O(1)
+SortedDescList.tail       :: SortedDescList<T> -> SortedDescList<T>                 O(1)
+SortedDescList.last       :: SortedDescList<T> -> T                                 O(1)
+SortedDescList.map        :: (T -> T') -> SortedDescList<T> -> List<T'>             O(n)
+SortedDescList.filter     :: (T -> Bool) -> SortedDescList<T> -> SortedDescList<T>  O(n)
+SortedDescList.size       :: SortedDescList<T> -> Int                               O(1)
+SortedDescList.maximize   :: (T -> Number) -> SortedDescList<T> -> T                O(n)
+SortedDescList.minimize   :: (T -> Number) -> SortedDescList<T> -> T                O(n)
+SortedDescList.contains   :: T -> SortedDescList<T> -> Bool                         O(log n)
+SortedDescList.add        :: T -> SortedDescList<T> -> SortedDescList<T>            O(log n)
 
 
 ** Array-like **
 
 * Array<T>
 Array.build     :: [T] -> Array<T>
-Array.map       :: (T -> T') -> Array<T> -> Array<T'>
-Array.size      :: Array<T> -> Int
-Array.toList    :: Array<T> -> List<T>
-Array.get       :: Int -> Array<T> -> T
-Array.set       :: Int -> T -> Array<T>
+Array.map       :: (T -> T') -> Array<T> -> Array<T'>               O(n)
+Array.size      :: Array<T> -> Int                                  O(1)
+Array.toList    :: Array<T> -> List<T>                              O(n)
+Array.get       :: Int -> Array<T> -> T                             O(1)
+Array.set       :: Int -> T -> Array<T>                             O(1)
 
 * SqrtDecArray<T, assoc (T -> T')>
-SqrtDecArray.build  :: (T -> T') -> Array<T> -> SqrtDecArray<T>
-SqrtDecArray.eval   :: Int -> Int -> T'
-SqrtDecArray.get    :: Int -> T
-SqrtDecArray.set    :: Int -> T -> SqrtDecArray<T>
+SqrtDecArray.build  :: (T -> T') -> Array<T> -> SqrtDecArray<T>     O(n)
+SqrtDecArray.eval   :: Int -> Int -> T'                             O(sqrt n)
+SqrtDecArray.get    :: Int -> T                                     O(1)
+SqrtDecArray.set    :: Int -> T -> SqrtDecArray<T>                  O(1) / O(n)  (comm invert?)
 
 * FenwickTree<T, assoc comm invert (T -> T')>
-FenwickTree.build   :: (T -> T') -> Array<T> -> FenwickTree<T>
-FenwickTree.eval    :: Int -> Int -> T'
-FenwickTree.get     :: Int -> T
-FenwickTree.set     :: Int -> FenwickTree<T>
+FenwickTree.build   :: (T -> T') -> Array<T> -> FenwickTree<T>      O(n * log n)
+FenwickTree.eval    :: Int -> Int -> T'                             O(log n)
+FenwickTree.get     :: Int -> T                                     O(1)
+FenwickTree.set     :: Int -> FenwickTree<T>                        O(log n)
 
 
 ** Other **
 
-* Set<T>
+* HashSet<T>
 Set.build       :: [T] -> Set<T>
-Set.filter      :: (T -> Bool) -> Set<T> -> Set<T>
-Set.size        :: Set<T> -> Int
-Set.contains    :: T -> Set<T> -> Bool
-Set.maximize    :: (T -> Number) -> Set<T> -> T
-Set.minimize    :: (T -> Number) -> Set<T> -> T
+Set.filter      :: (T -> Bool) -> Set<T> -> Set<T>      O(n)
+Set.size        :: Set<T> -> Int                        O(1)
+Set.contains    :: T -> Set<T> -> Bool                  O(1)
+Set.maximize    :: (T -> Number) -> Set<T> -> T         O(n)
+Set.minimize    :: (T -> Number) -> Set<T> -> T         O(n)
+Set.add         :: T -> Set<T> -> Set<T>                
+
+* TreeSet<T>
+Set.build       :: [T] -> Set<T>
+Set.filter      :: (T -> Bool) -> Set<T> -> Set<T>      
+Set.size        :: Set<T> -> Int                        O(1)
+Set.contains    :: T -> Set<T> -> Bool                  O(log n)
+Set.maximize    :: (T -> Number) -> Set<T> -> T         O(log n)
+Set.minimize    :: (T -> Number) -> Set<T> -> T         O(log n)
 Set.add         :: T -> Set<T> -> Set<T>
 
 * Map<K, V>
