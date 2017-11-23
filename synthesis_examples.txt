@@ -6,8 +6,7 @@ map f' (mapFilter p f)       =  mapFilter p (f' . f) xs
 
 
 List.build xs                ~ xs
-SortedAscList.build comp xs  ~ sort comp xs
-SortedDescList.build comp xs ~ sort -comp xs
+SortedList.build comp xs     ~ sort comp xs
 Array.build xs               ~ xs
 SqrtDecArray.build f xs      ~ xs
 FenwickTree.build xs         ~ xs
