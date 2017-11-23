@@ -4,8 +4,21 @@ map f (filter p xs)          =  mapFilter p       f xs  =  map (\x -> if p x the
 filter p' (mapFilter p f xs) =  mapFilter (\x -> p x && p' x) f xs
 map f' (mapFilter p f)       =  mapFilter p (f' . f) xs
 
+
+List.build xs                ~ xs
+SortedAscList.build comp xs  ~ sort comp xs
+SortedDescList.build comp xs ~ sort -comp xs
+Array.build xs               ~ xs
+SqrtDecArray.build f xs      ~ xs
+FenwickTree.build xs         ~ xs
+HashSet.build xs             ~ xs
+TreeSet.build xs             ~ xs
+Map.build f xs               ~ map f xs
+Heap.build comp xs           ~ sort comp xs
+
+
+
 Map.get x xs   ~ snd ( filter (\(x1, _) -> x1 == x) xs )
-Map.build f xs ~ map f xs
 
 *** graph problem from cozy ***
 
@@ -53,7 +66,7 @@ table2: Map<Int, HashSet<Edge>>
 findEdges n = Set.Union (Map.get n table1) (Map.get n table2)
 where
     table1 = Map.build ( \e -> (e.src, filter (\e' -> e'.src == e.src) graph) ) graph
-    table2 = Map.build ( \e -> (e.dst, filter (\e' -> e'.dst == e.dst) graph)) ) (filter (\e -> e.src != e.dst) graph)
+    table2 = Map.build ( \e -> (e.dst, filter (\e' -> e'.dst == e.dst) graph) ) (filter (\e -> e.src != e.dst) graph)
 
 let graph' = (filter (\e -> e.src != e.dst) graph)
 
