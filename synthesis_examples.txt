@@ -3,8 +3,9 @@
 filter p (map f xs)          =  mapFilter (p . f) f xs  =  map (\x -> if p (f x) then f x else None)
 map f (filter p xs)          =  mapFilter p       f xs  =  map (\x -> if p x then f x else None)
 filter p' (mapFilter p f xs) =  mapFilter (\x -> p x && p' x) f xs
-map f' (mapFilter p f)       =  mapFilter p (f' . f) xs
+map f' (mapFilter p f xs)    =  mapFilter p (f' . f) xs
 
+head (mapFilter p f xs)      =  f (head (filter p xs))
 
 
 List.build xs                ~ xs
@@ -18,9 +19,15 @@ Map.build f xs               ~ map f xs
 HashTable.build f ks         ~ map (\k -> (k, f k)) ks
 Heap.build comp xs           ~ sort comp xs
 
-Map.get x xs         ~ snd ( filter (\(x1, _) -> x1 == x) xs )
-HashTable.get x xs   ~ snd ( filter (\(x1, _) -> x1 == x) xs )
+Map.get x xs         ~ (snd . head) ( filter (\(x1, _) -> x1 == x) xs )
+HashTable.get x xs   ~ (snd . head) ( filter (\(x1, _) -> x1 == x) xs )
 Heap.pop xs          ~ head xs
+
+
+* f :: T -> Number
+get= f v xs ~ filter (\x -> f x == v) xs
+get< f v xs ~ filter (\x -> f x < v) xs
+get> f v xs ~ filter (\x -> f x > v) xs
 
 *** graph problem from cozy ***
 
@@ -48,21 +55,41 @@ List.concat
     HashTable.get n ( HashTable.build (\src -> filter (\e -> e.src == src) graph) (map (\e -> e.src) graph) )
     HashTable.get n ( HashTable.build (\dst -> filter (\e -> e.dst == dst) graph) (map (\e -> e.dst) graph) ) ~
 List.concat
-    map snd ( filter (\(src, _) -> src == n) ( map (\k -> (k , filter (\e -> e.src == k) graph)) (map (\e -> e.src) graph) ) )
-    map snd ( filter (\(dst, _) -> dst == n) ( map (\k -> (k , filter (\e -> e.dst == k) graph)) (map (\e -> e.dst) graph) ) ) ~
+    snd ( head ( filter (\(src, _) -> src == n) ( map (\k -> (k , filter (\e -> e.src == k) graph)) (map (\e -> e.src) graph) ) ) )
+    snd ( head ( filter (\(dst, _) -> dst == n) ( map (\k -> (k , filter (\e -> e.dst == k) graph)) (map (\e -> e.dst) graph) ) ) ) ~
 List.concat
-    map snd ( filter (\(src, _) -> src == n) ( map (\e -> (e.src, filter (\e' -> e'.src == e.src) graph)) graph ) )
-    map snd ( filter (\(dst, _) -> dst == n) ( map (\e -> (e.dst, filter (\e' -> e'.dst == e.dst) graph)) graph ) ) ~
+    snd ( head ( filter (\(src, _) -> src == n) ( map (\e -> (e.src, filter (\e' -> e'.src == e.src) graph)) graph ) ) )
+    snd ( head ( filter (\(dst, _) -> dst == n) ( map (\e -> (e.dst, filter (\e' -> e'.dst == e.dst) graph)) graph ) ) ) ~
 List.concat
-    map snd ( mapFilter (\e -> e.src == n) (\e -> (e.src, filter (\e' -> e'.src == e.src) graph)) graph )
-    map snd ( mapFilter (\e -> e.dst == n) (\e -> (e.dst, filter (\e' -> e'.dst == e.dst) graph)) graph ) ~
+    snd ( head ( mapFilter (\e -> e.src == n) (\e -> (e.src, filter (\e' -> e'.src == e.src) graph)) graph ) )
+    snd ( head ( mapFilter (\e -> e.dst == n) (\e -> (e.dst, filter (\e' -> e'.dst == e.dst) graph)) graph ) ) ~
 List.concat
-    mapFilter (\e -> e.src == n) (\e -> filter (\e' -> e'.src == e.src) graph) graph
-    mapFilter (\e -> e.dst == n) (\e -> filter (\e' -> e'.dst == e.dst) graph) graph ~
+    snd ( (head (filter (\e -> e.src == n) graph)).src, filter (\e' -> e'.src == (head (filter (\e -> e.src == n) graph)).src) graph  )
+    snd ( (head (filter (\e -> e.dst == n) graph)).dst, filter (\e' -> e'.dst == (head (filter (\e -> e.dst == n) graph)).dst) graph  ) ~
 List.concat
-    filter (\e -> e.src == n) graph
-    filter (\e -> e.dst == n) graph ~
+    filter (\e' -> e'.src == (head (filter (\e -> e.src == n) graph)).src) graph
+    filter (\e' -> e'.dst == (head (filter (\e -> e.dst == n) graph)).dst) graph ~
+List.concat
+    filter (\e' -> e'.src == n) graph
+    filter (\e' -> e'.dst == n) graph ~
 filter (\e -> e.src == n || e.dst == n) graph
+
+
+Почему синтезатору стоит попробовать HashTable (эвристика)?
+findEdges n ~
+-- Разделим DNF(filter) по дизъюнктам
+Collection.union
+    filter (\e -> e.src == n) graph
+    filter (\e -> e.dst == n) graph
+Collection.union
+    get= (\e -> e.src) n graph
+    get= (\e -> e.dst) n graph
+-- Для get= f n graph можно попробовать Map<K, V, f> в случае (inj f), иначе HashTable<K, V, f>
+-- Solver проверяет, что данная f не inj
+Collection.union
+    HashTable.get n ( HashTable.build (\e) )
+
+
 
 
 * Solution O(1) with HashTable<Int, Edge>
