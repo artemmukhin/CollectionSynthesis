@@ -1,8 +1,10 @@
-*** some of reduce rules ***
+*** some reduce rules ***
+
 filter p (map f xs)          =  mapFilter (p . f) f xs  =  map (\x -> if p (f x) then f x else None)
 map f (filter p xs)          =  mapFilter p       f xs  =  map (\x -> if p x then f x else None)
 filter p' (mapFilter p f xs) =  mapFilter (\x -> p x && p' x) f xs
 map f' (mapFilter p f)       =  mapFilter p (f' . f) xs
+
 
 
 List.build xs                ~ xs
@@ -13,11 +15,12 @@ FenwickTree.build xs         ~ xs
 HashSet.build xs             ~ xs
 TreeSet.build xs             ~ xs
 Map.build f xs               ~ map f xs
+HashTable.build f ks         ~ map (\k -> (k, f k)) ks
 Heap.build comp xs           ~ sort comp xs
 
-
-
-Map.get x xs   ~ snd ( filter (\(x1, _) -> x1 == x) xs )
+Map.get x xs         ~ snd ( filter (\(x1, _) -> x1 == x) xs )
+HashTable.get x xs   ~ snd ( filter (\(x1, _) -> x1 == x) xs )
+Heap.pop xs          ~ head xs
 
 *** graph problem from cozy ***
 
@@ -31,7 +34,71 @@ graphList: List<Edge>
 findEdges n = filter (\e -> e.src == n || e.dst == n) graphList
 
 
-* Solution < O(n)
+* Solution O(n) with HashTable<Int, Edge>
+table1: HashTable<Int, Edge>
+table2: HashTable<Int, Edge>
+findEdges n = List.concat (HashTable.get n table1) (HashTable.get n table2)
+where
+    table1 = HashTable.build (\src -> filter (\e -> e.src == src) graph) (map (\e -> e.src) graph)
+    table2 = HashTable.build (\dst -> filter (\e -> e.dst == dst) graph) (map (\e -> e.dst) graph)
+
+
+findEdges n ~
+List.concat
+    HashTable.get n ( HashTable.build (\src -> filter (\e -> e.src == src) graph) (map (\e -> e.src) graph) )
+    HashTable.get n ( HashTable.build (\dst -> filter (\e -> e.dst == dst) graph) (map (\e -> e.dst) graph) ) ~
+List.concat
+    map snd ( filter (\(src, _) -> src == n) ( map (\k -> (k , filter (\e -> e.src == k) graph)) (map (\e -> e.src) graph) ) )
+    map snd ( filter (\(dst, _) -> dst == n) ( map (\k -> (k , filter (\e -> e.dst == k) graph)) (map (\e -> e.dst) graph) ) ) ~
+List.concat
+    map snd ( filter (\(src, _) -> src == n) ( map (\e -> (e.src, filter (\e' -> e'.src == e.src) graph)) graph ) )
+    map snd ( filter (\(dst, _) -> dst == n) ( map (\e -> (e.dst, filter (\e' -> e'.dst == e.dst) graph)) graph ) ) ~
+List.concat
+    map snd ( mapFilter (\e -> e.src == n) (\e -> (e.src, filter (\e' -> e'.src == e.src) graph)) graph )
+    map snd ( mapFilter (\e -> e.dst == n) (\e -> (e.dst, filter (\e' -> e'.dst == e.dst) graph)) graph ) ~
+List.concat
+    mapFilter (\e -> e.src == n) (\e -> filter (\e' -> e'.src == e.src) graph) graph
+    mapFilter (\e -> e.dst == n) (\e -> filter (\e' -> e'.dst == e.dst) graph) graph ~
+List.concat
+    filter (\e -> e.src == n) graph
+    filter (\e -> e.dst == n) graph ~
+filter (\e -> e.src == n || e.dst == n) graph
+
+
+* Solution O(1) with HashTable<Int, Edge>
+table1: HashTable<Int, Edge>
+table2: HashTable<Int, Edge>
+findEdges n = List.concat (HashTable.get n table1) (HashTable.get n table2)
+where
+    table1 = HashTable.build (\src -> filter (\e -> e.src == src) graph) (map (\e -> e.src) graph)
+    table2 = HashTable.build (\dst -> filter (\e -> e.dst == dst) graph) (map (\e -> e.dst) (filiter (\e -> e.src != e.dst) graph))
+
+
+findEdges n ~
+List.concat
+    HashTable.get n ( HashTable.build (\src -> filter (\e -> e.src == src) graph) (map (\e -> e.src) graph) )
+    HashTable.get n ( HashTable.build (\dst -> filter (\e -> e.dst == dst) graph) (map (\e -> e.dst) (filiter (\e -> e.src != e.dst) graph)) ) ~
+List.concat
+    map snd ( filter (\(src, _) -> src == n) ( map (\k -> (k , filter (\e -> e.src == k) graph)) (map (\e -> e.src) graph) ) )
+    map snd ( filter (\(dst, _) -> dst == n) ( map (\k -> (k , filter (\e -> e.dst == k) graph)) (mapFilter (\e -> e.src != e.dst) (\e -> e.dst) graph) ) ) ~
+List.concat
+    map snd ( filter (\(src, _) -> src == n) ( map (\e -> (e.src, filter (\e' -> e'.src == e.src) graph)) graph ) )
+    map snd ( filter (\(dst, _) -> dst == n) ( mapFilter (\e -> e.src != e.dst) (\e -> (e.dst, filter (\e' -> e'.dst == e.dst) graph)) graph) ~
+List.concat
+    map snd ( mapFilter (\e -> e.src == n) (\e -> (e.src, filter (\e' -> e'.src == e.src) graph)) graph )
+    map snd ( mapFilter (\e -> e.src != e.dst && e.dst == n) (\e -> (e.dst, filter (\e' -> e'.dst == e.dst) graph)) graph ) ~
+List.concat
+    mapFilter (\e -> e.src == n) (\e -> filter (\e' -> e'.src == e.src) graph) graph
+    mapFilter (\e -> e.src != e.dst && e.dst == n) (\e -> filter (\e' -> e'.dst == e.dst) graph) graph ~
+List.concat
+    filter (\e -> e.src == n) graph
+    filter (\e -> e.src != e.dst && e.dst == n) graph ~
+filter (\e -> e.src == n || e.dst == n) graph
+
+
+
+
+* Solution < O(n) with Map<Int, HashSet<Edge>>
 table1: Map<Int, HashSet<Edge>>
 table2: Map<Int, HashSet<Edge>>
 findEdges n = Set.Union (Map.get n table1) (Map.get n table2)

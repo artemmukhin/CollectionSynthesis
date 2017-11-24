@@ -40,6 +40,7 @@ List.maximize   :: (T -> Number) -> List<T> -> T                        O(n)
 List.minimize   :: (T -> Number) -> List<T> -> T                        O(n)
 List.contains   :: T -> List<T> -> Bool                                 O(n)
 List.add        :: T -> List<T> -> List<T>                              O(1)
+List.concat     :: List<T> -> List<T> -> List<T>                        O(1)
 
 * SortedList<T, (T -> Number)>
 SortedList.build      :: (T -> Number) -> [T] -> SortedList<T>                
@@ -102,13 +103,23 @@ TreeSet.minimize    :: (T -> Number) -> TreeSet<T> -> T             O(log n)
 TreeSet.add         :: T -> TreeSet<T> -> TreeSet<T>
 
 * Map<K, V>
-Map.build       :: (T -> (K, V)) -> [T] -> Map<K, V>
-Map.filterK     :: (K -> Bool) -> Map<K, V> -> Map<K, V>
-Map.filterV     :: (V -> Bool) -> Map<K, V> -> Map<K, V>
-Map.size        :: Map<K, V> -> Int
-Map.containsK   :: K -> Map<K, V> -> Bool
-Map.containsV   :: V -> Map<K, V> -> Bool
-Map.add         :: (K, V) -> Map<K, V> -> Map<K, V>
+Map.build           :: (K -> V) -> [K] -> Map<K, V>
+Map.filterK         :: (K -> Bool) -> Map<K, V> -> Map<K, V>
+Map.filterV         :: (V -> Bool) -> Map<K, V> -> Map<K, V>
+Map.size            :: Map<K, V> -> Int
+Map.containsK       :: K -> Map<K, V> -> Bool
+Map.containsV       :: V -> Map<K, V> -> Bool
+Map.get             :: K -> Map<K, V> -> V
+Map.add             :: (K, V) -> Map<K, V> -> Map<K, V>
+
+* HashTable<K, V>
+HashTable.build       :: (K -> [V]) -> [K] -> HashTable<K, V>
+HashTable.filterK     :: (K -> Bool) -> HashTable<K, V> -> HashTable<K, V>
+HashTable.size        :: HashTable<K, V> -> Int
+HashTable.containsK   :: K -> HashTable<K, V> -> Bool
+HashTable.containsV   :: V -> HashTable<K, V> -> Bool
+HashTable.get         :: K -> HashTable<K, V> -> List<V>
+HashTable.add         :: (K, V) -> HashTable<K, V> -> HashTable<K, V>
 
 * Heap<T, (T -> Number)>
 Heap.build      :: (T -> Number) -> [T] ->  Heap<T>
