@@ -228,4 +228,19 @@ List.head (SortedDescList.build (\w -> count w.value) words) ~
 maximize (\w -> count w.value) words
 
 -------------------------------------------------------------------------
+*** 03A ***
+-- unique a-la SQL
+-- get p xs ~ head (filter p xs), для unique полей
 
+record Number { unique index: Int, unique value: Int }
+numbers: Collection<Number>
+
+query swapGet(val1: Int, val2: Int) =
+    abs ((get (\n -> n.value == val1) numbers).index - (get (\n -> n.value == val2) numbers).index)
+update swapSet(v1: Int, v2: Int) =
+    numbers <-
+        numbers
+        .map(\n -> if n.value == val1 then {n.value, numbers.get(\n -> n.value == val2).index} else n)
+        .map(\n -> if n.value == val2 then {n.value, numbers.get(\n -> n.value == val1).index} else n)
+
+--    numbers <- numbers.set(v1, safeGet(numbers, v2, v2)).set(v2, safeGet(numbers, v1, v1))
