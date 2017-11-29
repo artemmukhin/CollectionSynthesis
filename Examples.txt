@@ -247,7 +247,7 @@ update swapSet(v1: Int, v2: Int) =
 
 ------------------------------------------------------------------------
 *** O3B ***
--- records.get("fieldName", fieldValue) ~ 
+-- records.get("fieldName", fieldValue) ~ head (filter (\r -> r.fieldName == fieldValue) records)
 
 record Mouse { unique name: String, left: String, right: String }
 mice: Collection<Mouse>
