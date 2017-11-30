@@ -110,6 +110,7 @@ Map.size            :: Map<K, V> -> Int
 Map.containsK       :: K -> Map<K, V> -> Bool
 Map.containsV       :: V -> Map<K, V> -> Bool
 Map.get             :: K -> Map<K, V> -> V
+Map.set 			:: K -> V -> Map<K, V> -> Map<K, V>
 Map.add             :: (K, V) -> Map<K, V> -> Map<K, V>
 
 * HashTable<K, V, (K -> V)>

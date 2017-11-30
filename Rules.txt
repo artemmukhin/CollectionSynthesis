@@ -1,0 +1,38 @@
+*** some reduce rules ***
+
+filter p (map f xs)           =  mapFilter (p . f) f xs  =  map (\x -> if p (f x) then f x else None)
+map f (filter p xs)           =  mapFilter p     f xs  =  map (\x -> if p x then f x else None)
+filter p' (mapFilter p f xs)  =  mapFilter (\x -> p x && p' x) f xs
+map f' (mapFilter p f xs)     =  mapFilter p (f' . f) xs
+
+head (mapFilter p f xs)       =  f (head (filter p xs))
+
+List.build xs             ~ xs
+SortedList.build comp xs  ~ sort comp xs
+Array.build xs            ~ xs
+SqrtDecArray.build f xs   ~ xs
+FenwickTree.build xs      ~ xs
+HashSet.build xs          ~ xs
+TreeSet.build xs          ~ xs
+Map.build f ks            ~ map (\k -> (k, f k)) ks
+HashTable.build f ks      ~ map (\k -> (k, f k)) ks
+Heap.build comp xs        ~ sort comp xs
+
+Map.get k xs     	~ (snd . head) ( filter (\(k1, _) -> k1 == k) xs )
+HashTable.get x xs  ~ (snd . head) ( filter (\(x1, _) -> x1 == x) xs )
+Heap.pop xs      	~ head xs
+
+Map.set k v xs   	~ map (\(k1, v1) -> if k1 == k then (k1, v) else (k1, v1)) xs
+
+
+* f :: T -> Number
+get= f v xs ~ filter (\x -> f x == v) xs
+get< f v xs ~ filter (\x -> f x < v) xs
+get> f v xs ~ filter (\x -> f x > v) xs
+
+
+* Syntax sugar:
+records.get("fieldName", fieldValue) ~ head (filter (\r -> r.fieldName == fieldValue) records)
+
+records.set("fieldName1", fieldValue1, "fieldName2", fieldValue2) ~
+	map (\r -> if r.fieldName1 == fieldValue1 then {..., fieldName2=fieldValue2, ...} else r)

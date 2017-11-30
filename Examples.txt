@@ -1,34 +1,3 @@
-*** some reduce rules ***
-
-filter p (map f xs)      =  mapFilter (p . f) f xs  =  map (\x -> if p (f x) then f x else None)
-map f (filter p xs)      =  mapFilter p     f xs  =  map (\x -> if p x then f x else None)
-filter p' (mapFilter p f xs) =  mapFilter (\x -> p x && p' x) f xs
-map f' (mapFilter p f xs)  =  mapFilter p (f' . f) xs
-
-head (mapFilter p f xs)    =  f (head (filter p xs))
-
-
-List.build xs        ~ xs
-SortedList.build comp xs   ~ sort comp xs
-Array.build xs         ~ xs
-SqrtDecArray.build f xs    ~ xs
-FenwickTree.build xs     ~ xs
-HashSet.build xs       ~ xs
-TreeSet.build xs       ~ xs
-Map.build f xs         ~ map f xs
-HashTable.build f ks     ~ map (\k -> (k, f k)) ks
-Heap.build comp xs       ~ sort comp xs
-
-Map.get x xs     ~ (snd . head) ( filter (\(x1, _) -> x1 == x) xs )
-HashTable.get x xs   ~ (snd . head) ( filter (\(x1, _) -> x1 == x) xs )
-Heap.pop xs      ~ head xs
-
-
-* f :: T -> Number
-get= f v xs ~ filter (\x -> f x == v) xs
-get< f v xs ~ filter (\x -> f x < v) xs
-get> f v xs ~ filter (\x -> f x > v) xs
-
 *** graph problem from cozy ***
 
 record Edge { src: Int, dst: Int }
@@ -229,38 +198,60 @@ maximize (\w -> count w.value) words
 
 -------------------------------------------------------------------------
 *** 03A ***
--- unique a-la SQL
--- get p xs ~ head (filter p xs), для unique полей
 
-record Number { unique index: Int, unique value: Int }
+record Number { unique value: Int, unique index: Int }
 numbers: Collection<Number>
 
 query swapGet(val1: Int, val2: Int) =
-  abs ((get (\n -> n.value == val1) numbers).index - (get (\n -> n.value == val2) numbers).index)
-update swapSet(v1: Int, v2: Int) =
-  numbers <-
-    numbers
-    .map(\n -> if n.value == val1 then {n.value, numbers.get(\n -> n.value == val2).index} else n)
-    .map(\n -> if n.value == val2 then {n.value, numbers.get(\n -> n.value == val1).index} else n)
+  abs (numbers.get("value", val1).index - numbers.get("value", val2).index)
 
---  numbers <- numbers.set(v1, safeGet(numbers, v2, v2)).set(v2, safeGet(numbers, v1, v1))
+update swapSet(v1: Int, v2: Int) =
+  numbers <- numbers.set("value", val1, "index", numbers.get("value", val2))
+                    .set("value", val2, "index", numbers.get("value", val1))
+
+* Solution
+numbersMap: Map<Int, Number> =
+  Map.build (\k -> find (\n -> n.value == k) numbers) (map (\n -> n.value) numbers)
+swapGet = abs $ (Map.get val1 numbersMap) - (Map.get val2 numbersMap)
+swapSet = Map.set val2 {_, Map.get val1 numbersMap} (Map.set val1 {_, Map.get val2 numbersMap} numbersMap)
+
+Proof:
+swapGet ~
+abs $ snd (head ( filter (\(k, _) -> k == val1) numbersMap)) - snd (head ( filter (\(k, _) -> k == val2) numbersMap)) ~
+abs F1 - F2
+
+F1 ~
+snd (head (
+  filter  (\(k, _) -> k == val1)
+          (map (\k -> (k, find (\n -> n.value == k) numbers)) (map (\n -> n.value) numbers))
+)) ~
+snd . head $ filter (\(k, _) -> k == val1) (map (\n -> (n.value, find (\n1 -> n1.value == n.value)) numbers) numbers) ~
+snd . head $ mapFilter (\n -> n.value == val1) (\n -> (n.value, find (\n1 -> n1.value == n.value)) numbers) numbers ~
+snd $ (\n -> (n.value, find (\n1 -> n1.value == n.value)) numbers) (filter (\n -> n.value == val1) numbers) ~
+(\n -> find (\n1 -> n1.value == n.value) numbers) (filter (\n -> n.value == val1) numbers) ~
+filter (\n -> n.value == val1)
+
+F2 ~
+... ~
+filter (\n -> n.value == val2)
+
+
+swapSet ~
+map (\(k1, v1) -> if k1 == val2 then (k1, {_, Map.get val1 numbersMap}) else (k1, v1)) $ secondmap ~
+...
+
 
 ------------------------------------------------------------------------
 *** O3B ***
--- records.get("fieldName", fieldValue) ~ head (filter (\r -> r.fieldName == fieldValue) records)
 
 record Mouse { unique name: String, left: String, right: String }
 mice: Collection<Mouse>
 
 update addLeft(sittingMouse: String, newMouse: String) =
-  mice <-
-    mice
-    .map(\m -> if m.name == sittingMouse then {m.name, newMouse, m.right} else m)
-    .add({newMouse, mice.get("name", sittingMouse).left, sittingMouse})
+  mice <- mice.set("name", sittingMouse, "left", newMouse)
+              .add({newMouse, mice.get("name", sittingMouse).left, sittingMouse})
 
 update addRight(sittingMouse: String, newMouse: String) =
-  mice <-
-    mice
-    .map(\m -> if m.name == sittingMouse then {m.name, m.left, newMouse} else m)
-    .add({newMouse, sittingMouse, mice.get("name", sittingMouse).right})
+  mice <- mice.set("name", sittingMouse, "right", newMouse)
+              .add({newMouse, sittingMouse, mice.get("name", sittingMouse).right})
 
