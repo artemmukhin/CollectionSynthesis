@@ -255,3 +255,11 @@ update addRight(sittingMouse: String, newMouse: String) =
   mice <- mice.set("name", sittingMouse, "right", newMouse)
               .add({newMouse, sittingMouse, mice.get("name", sittingMouse).right})
 
+-----------------------------------------------------------------------
+*** RMQ ***
+
+record Number { value: Int, index: Int }
+numbers: Collection<Number>
+
+query rmq(left: Int, right: Int) =
+  min (filter (\n -> n.index > left && n.index < right) numbers)
