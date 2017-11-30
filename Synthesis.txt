@@ -53,3 +53,53 @@ swapSet:
   -- поэтому с точки зрения cost-модели set ~ get=
   get= "value"
   -- аналогично подходит Map<Int, Number>
+
+---------------------------------------------------
+*** basic-or cozy ***
+
+record Person { age: Int, name: String }
+persons: Collection<Person>
+
+query q(minAge: int, theName: String) =
+  persons
+  |> filter (\p -> p.age > minAge || p.name == theName)
+
+q:
+  get> "age"
+  get= "name"
+
+Collection.union
+  filter (\p -> p.age > minAge) persons
+  filter (\p -> p.name == theName) persons
+Collection.concat
+  filter (\p -> p.age > minAge) persons                           SortedCollection<Person, (p.age)>
+  filter (\p -> p.name == theName && p.age <= minAge) persons     Map<String, Sorted<Person, (p.age asc)>>
+
+Если запрос имеет вид filter, состоящего только из ==, то оптимальное решение -- привести запрос в DNF и построить несколько Map:
+filter (\r -> (r.v1 == v1 && r.v2 == v2) || (r.v3 == v3 && r.v4 == v4 && r.v5 == v5) || ...) ~
+Map<Tuple(v1, v2), List<Record>>        линейный поиск (\r -> !(остальное))
+Map<Tuple(v3, v4, v5), List<Record>>    линейный поиск (\r -> !(остальное))
+...
+
+filter (\r -> r.v1 == v1 && r.v2 == v2 && r.v3 < v3 && r.v4 > v4 && ...) ~
+Map<Tuple(v1, v2), Sorted<Record, (...)>>   бинпоиск
+
+filter (\r -> r.v1 < v1 || r.v2 > v2 || ...) ~
+Sorted<Record, (...)>
+Sorted<Record, (...)>
+... (2^n)
+
+---------------------------------------------------
+
+record R { value1: Int, value2: Int }
+records: Collection<Record>
+
+query q(val1: Int, val2: Int) =
+  numbers
+  |> filter (\r -> r.value1 < val1 && r.value2 < val2)
+  |> map (\r -> r.value1 * r.value2) 
+  |> max
+
+q:
+  get< "value1"
+  get< "value2"
