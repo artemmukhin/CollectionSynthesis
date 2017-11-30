@@ -1,0 +1,53 @@
+*** graph problem from cozy ***
+
+record Edge { src: Int, dst: Int }
+graph: SetOf<Edge>
+query findEdges(n: int) = filter (\e -> e.src == n || e.dst == n) graph
+
+findEdges:
+  get= "src"
+  get= "dst"
+  -- минимизировать время вычисления get= по нескольким полям =>
+  -- подходят несколько Map<Int, Edge> по каждому из полей
+
+-------------------------------------------------------
+*** top frequent word ***
+
+record Word { value: String }
+words: Collection<Word>
+query count(val: String) = size (filter (\w -> w.value == val) words)
+query topFrequent() =  maximize (\w -> count w.value) words
+
+count:
+  f (get=), где f :: Record -> Any
+  -- минимизировать время вычисления f (get=) =>
+  -- подходит Map<string, Int> (s -> f(s))
+
+topFrequent:
+  max/min (comparator), где comparator :: Record -> Number
+  -- минимизировать время вычисления max (comparator) =>
+  -- нужна структура, позволяющая максимизировать какую-то функцию =>
+  -- какая-то приоритетная очередь
+
+-------------------------------------------------------
+*** 03A ***
+
+record Number { unique value: Int, unique index: Int }
+numbers: Collection<Number>
+
+query swapGet(val1: Int, val2: Int) =
+  abs (numbers.get("value", val1).index - numbers.get("value", val2).index)
+
+update swapSet(v1: Int, v2: Int) =
+  numbers <- numbers.set("value", val1, "index", numbers.get("value", val2))
+                    .set("value", val2, "index", numbers.get("value", val1))
+
+swapGet:
+  get= "value"
+  -- подходит Map<Int, Number>
+
+swapSet:
+  -- number.set(...) на низком уровне реализуется через get=,
+  -- поэтому с точки зрения cost-модели set ~ get=
+  get= "value"
+  -- аналогично подходит Map<Int, Number>
