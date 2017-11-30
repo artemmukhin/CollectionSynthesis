@@ -166,16 +166,16 @@ query count(val: String) = size (filter (\w -> w.value == val) words)
 query topFrequent() =  maximize (\w -> count w.value) words
 
 * Solution
-wordsHeap: Heap<Word> (\w -> Map.get w countMap)
+wordsHeap: PQueue<Word> (\w -> Map.get w countMap)
 countMap: Map<Word, Int> (\w -> (w, count w.value))
-topFrequent = Heap.pop wordsHeap
+topFrequent = PQueue.pop wordsHeap
 
 topFrequent ~
-Heap.pop ( Heap.build (\w -> Map.get w (Map.build (\w1 -> (w1, count w.value)) words)) words ) ~
-Heap.pop ( Heap.build (\w -> map snd $ filter (\(w1, _) -> w1 == w) (map (\w1 -> (w1, count w.value)) words)) words ) ~
-Heap.pop ( Heap.build (\w -> map snd $ mapFilter (\w1 -> w1 == w) (\w1 -> (w1, count w1.value)) words) words ) ~
-Heap.pop ( Heap.build (\w -> map snd $ (\w -> (w, count w.value)) words ) ~
-Heap.pop ( Heap.build (\w -> count w.value) words ) ~
+PQueue.pop ( PQueue.build (\w -> Map.get w (Map.build (\w1 -> (w1, count w.value)) words)) words ) ~
+PQueue.pop ( PQueue.build (\w -> map snd $ filter (\(w1, _) -> w1 == w) (map (\w1 -> (w1, count w.value)) words)) words ) ~
+PQueue.pop ( PQueue.build (\w -> map snd $ mapFilter (\w1 -> w1 == w) (\w1 -> (w1, count w1.value)) words) words ) ~
+PQueue.pop ( PQueue.build (\w -> map snd $ (\w -> (w, count w.value)) words ) ~
+PQueue.pop ( PQueue.build (\w -> count w.value) words ) ~
 maximize (\w -> count w.value) words
 
 

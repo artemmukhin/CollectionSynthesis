@@ -7,20 +7,21 @@ map f' (mapFilter p f xs)     =  mapFilter p (f' . f) xs
 
 head (mapFilter p f xs)       =  f (head (filter p xs))
 
-List.build xs             ~ xs
-SortedList.build comp xs  ~ sort comp xs
-Array.build xs            ~ xs
-SqrtDecArray.build f xs   ~ xs
-FenwickTree.build xs      ~ xs
-HashSet.build xs          ~ xs
-TreeSet.build xs          ~ xs
-Map.build f ks            ~ map (\k -> (k, f k)) ks
-HashTable.build f ks      ~ map (\k -> (k, f k)) ks
-Heap.build comp xs        ~ sort comp xs
 
-Map.get k xs     	~ (snd . head) ( filter (\(k1, _) -> k1 == k) xs )
-HashTable.get x xs  ~ (snd . head) ( filter (\(x1, _) -> x1 == x) xs )
-Heap.pop xs      	~ head xs
+List.build xs             	~ xs
+SortedList.build comp xs  	~ sort comp xs
+Array.build xs            	~ xs
+SqrtDecArray.build f xs   	~ xs
+FenwickTree.build xs      	~ xs
+HashSet.build xs          	~ xs
+TreeSet.build xs          	~ xs
+Map.build f ks            	~ map (\k -> (k, f k)) ks
+HashTable.build f ks      	~ map (\k -> (k, f k)) ks
+PriorityQueue.build comp xs	~ sort comp xs
+
+Map.get k xs     		~ (snd . head) ( filter (\(k1, _) -> k1 == k) xs )
+HashTable.get x xs  	~ (snd . head) ( filter (\(x1, _) -> x1 == x) xs )
+PriorityQueue.pop xs	~ head xs
 
 Map.set k v xs   	~ map (\(k1, v1) -> if k1 == k then (k1, v) else (k1, v1)) xs
 

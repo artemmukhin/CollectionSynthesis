@@ -42,20 +42,6 @@ List.contains   :: T -> List<T> -> Bool                                 O(n)
 List.add        :: T -> List<T> -> List<T>                              O(1)
 List.concat     :: List<T> -> List<T> -> List<T>                        O(1)
 
-* SortedList<T, (T -> Number)>
-SortedList.build      :: (T -> Number) -> [T] -> SortedList<T>                
-SortedList.head       :: SortedList<T> -> T                             O(1)
-SortedList.tail       :: SortedList<T> -> SortedList<T>                 O(1)
-SortedList.last       :: SortedList<T> -> T                             O(1)
-SortedList.map        :: (T -> T') -> SortedList<T> -> List<T'>         O(n)
-SortedList.filter     :: (T -> Bool) -> SortedList<T> -> SortedList<T>  O(n)
-SortedList.size       :: SortedList<T> -> Int                           O(1)
-SortedList.maximize   :: (T -> Number) -> SortedList<T> -> T            O(n)
-SortedList.minimize   :: (T -> Number) -> SortedList<T> -> T            O(n)
-SortedList.find       :: T -> SortedList<T> -> T                        O(log n)
-SortedList.contains   :: T -> SortedList<T> -> Bool                     O(log n)
-SortedList.add        :: T -> SortedList<T> -> SortedList<T>            O(log n)
-
 
 ** Array-like **
 
@@ -122,11 +108,11 @@ HashTable.containsV   :: V -> HashTable<K, V> -> Bool
 HashTable.get         :: K -> HashTable<K, V> -> List<V>
 HashTable.add         :: (K, V) -> HashTable<K, V> -> HashTable<K, V>
 
-* Heap<T, (T -> Number)>
-Heap.build      :: (T -> Number) -> [T] ->  Heap<T>
-Heap.pop        :: Heap<T> -> Heap<T>
-Heap.push       :: T -> Heap<T> -> Heap<T>
-Heap.size       :: Heap<T> -> Int
+* PriorityQueue<T, (T -> Number)>
+PriorityQueue.build      :: (T -> Number) -> [T] ->  PriorityQueue<T>
+PriorityQueue.pop        :: PriorityQueue<T> -> PriorityQueue<T>
+PriorityQueue.push       :: T -> PriorityQueue<T> -> PriorityQueue<T>
+PriorityQueue.size       :: PriorityQueue<T> -> Int
 
 * BinaryTree<T, (T -> Number)>
 BinaryTree.build    :: (T -> Number) -> [T] -> BinaryTree<T>
