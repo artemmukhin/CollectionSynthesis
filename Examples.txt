@@ -241,6 +241,12 @@ map (\(k1, v1) -> if k1 == val2 then (k1, {_, Map.get val1 numbersMap}) else (k1
 ...
 
 
+* Можно рассмотреть задачу так:
+record Query { first, second }
+queries: Collection<Query>
+
+
+
 ------------------------------------------------------------------------
 *** O3B ***
 
@@ -258,8 +264,12 @@ update addRight(sittingMouse: String, newMouse: String) =
 -----------------------------------------------------------------------
 *** RMQ ***
 
-record Number { value: Int, index: Int }
-numbers: Collection<Number>
+record Number { value: Int }
+numbers: IndexedCollection<Number>
 
 query rmq(left: Int, right: Int) =
-  min (filter (\n -> n.index > left && n.index < right) numbers)
+  min (numbers[left : right])
+
+* Solution
+numbersArray: SqrtDecArray<Number, (min)>
+rmq l r = SqrtDecArray.eval l r

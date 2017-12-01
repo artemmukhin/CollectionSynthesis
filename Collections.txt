@@ -33,8 +33,7 @@ List.tail       :: List<T> -> List<T>                                   O(1)
 List.last       :: List<T> -> T                                         O(1)
 List.map        :: (T -> T') -> List<T> -> List<T'>                     O(n)
 List.filter     :: (T -> Bool) -> List<T> -> List<T>                    O(n)
-List.sortAsc    :: (T -> Number) -> List<T> -> SortedList<T>            O(n * log n)
-List.sortDesc   :: (T -> Number) -> List<T> ->  SortedList<T>           O(n * log n)
+List.sort       :: (T -> Number) -> List<T> -> List<T>                  O(n * log n)
 List.size       :: List<T> -> Int                                       O(1)
 List.maximize   :: (T -> Number) -> List<T> -> T                        O(n)
 List.minimize   :: (T -> Number) -> List<T> -> T                        O(n)
@@ -53,7 +52,7 @@ Array.toList    :: Array<T> -> List<T>                              O(n)
 Array.get       :: Int -> Array<T> -> T                             O(1)
 Array.set       :: Int -> T -> Array<T>                             O(1)
 
-* SqrtDecArray<T, assoc (T -> T')>
+* SqrtDecArray<T, assoc (T -> T -> T')>
 SqrtDecArray.build  :: (T -> T') -> Array<T> -> SqrtDecArray<T>     O(n)
 SqrtDecArray.eval   :: Int -> Int -> T'                             O(sqrt n)
 SqrtDecArray.get    :: Int -> T                                     O(1)
@@ -98,15 +97,6 @@ Map.containsV       :: V -> Map<K, V> -> Bool
 Map.get             :: K -> Map<K, V> -> V
 Map.set 			:: K -> V -> Map<K, V> -> Map<K, V>
 Map.add             :: (K, V) -> Map<K, V> -> Map<K, V>
-
-* HashTable<K, V, (K -> V)>
-HashTable.build       :: (K -> [V]) -> [K] -> HashTable<K, V>
-HashTable.filterK     :: (K -> Bool) -> HashTable<K, V> -> HashTable<K, V>
-HashTable.size        :: HashTable<K, V> -> Int
-HashTable.containsK   :: K -> HashTable<K, V> -> Bool
-HashTable.containsV   :: V -> HashTable<K, V> -> Bool
-HashTable.get         :: K -> HashTable<K, V> -> List<V>
-HashTable.add         :: (K, V) -> HashTable<K, V> -> HashTable<K, V>
 
 * PriorityQueue<T, (T -> Number)>
 PriorityQueue.build      :: (T -> Number) -> [T] ->  PriorityQueue<T>
