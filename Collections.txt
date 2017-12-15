@@ -59,7 +59,7 @@ List.find p xs          ~ safeHead (filter p xs)
 
 * Array<T>
 Array.build     :: [T] -> Array<T>
-Array.map       :: (T -> T') -> Array<T> -> Array<T'>                                   O(n)
+Array.map       :: (T -> T) -> Array<T> -> Array<T>                                   O(n)
 Array.size      :: Array<T> -> Int                                                      O(1)
 Array.get       :: Int -> Array<T> -> T                                                 O(1)
 Array.set       :: Int -> T -> Array<T> -> Array<T>                                     O(1)
@@ -93,7 +93,7 @@ Set.add x xs            ~ if !(Set.contains x xs) then x:xs else xs
 
 
 * typeclass Map<K, V, (K -> V)>
-Map.build           :: (K -> V) -> [K] -> Map<K, V>
+Map.build           :: (t -> (K, V)) -> [t] -> Map<K, V>
 Map.filterK         :: (K -> Bool) -> Map<K, V> -> Map<K, V>
 Map.filterV         :: (V -> Bool) -> Map<K, V> -> Map<K, V>
 Map.size            :: Map<K, V> -> Int
