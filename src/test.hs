@@ -2,7 +2,6 @@ module Main where
 import Data.Map(Map, fromList, lookup)
 import Data.Maybe(fromMaybe)
 
-
 data PrimType
   = Int
   | Bool
@@ -22,7 +21,8 @@ data Type
   | Constructor TypeConstructor [Type]
   deriving (Show, Eq)
 
-data Identifier = Identifier String deriving (Show)
+data Identifier = Identifier String
+instance Show Identifier where show (Identifier s) = s
 data Function   = Function { name :: String, domain :: [Type], range :: Type }
 
 instance Show Function where
@@ -34,7 +34,13 @@ data Term
   | Var Identifier Type
   | Abstraction [Identifier] Term
   | Application Function [Term]
-  deriving (Show)
+
+instance Show Term where
+  show (Hole pt)     = "_" ++ show pt ++ "_"
+  show (HoleList pt) = "[_" ++ show pt ++ "_]"
+  show (Var ident t) = show ident ++ ": " ++ show t
+  show (Abstraction args term) = "(λ " ++ concatMap show args ++ ". " ++ show term ++ ")"
+  show (Application f args) = show f ++ " " ++ unwords (map (\a -> "(" ++ show a ++ ")") args)
 
 functions :: [Function]
 functions = [Function { name    = "List.build",
@@ -42,6 +48,9 @@ functions = [Function { name    = "List.build",
                         range   = Constructor MyList [Prim (Poly "t")] },
              Function { name    = "List.map",
                         domain   = [Func [Prim (Poly "t")] (Prim (Poly "t")), Constructor MyList [Prim (Poly "t")]],
+                        range    = Constructor MyList [Prim (Poly "t")] },
+             Function { name    = "List.concat",
+                        domain   = [Constructor MyList [Prim (Poly "t")], Constructor MyList [Prim (Poly "t")]],
                         range    = Constructor MyList [Prim (Poly "t")] }
             ]
 
@@ -65,6 +74,7 @@ functionsByTypeConstr constr types =
 freshvar :: [Term] -> Type -> Identifier
 freshvar env _ = Identifier ("a" ++ show i) where
   i = length $ filter (\t -> case t of Var _ _ -> True; _ -> False) env
+
 
 generate :: [Term] -> Type -> [Term]
 generate _ (Prim t) = [Hole t]
