@@ -1,7 +1,7 @@
 module Main where
-import Data.Map(Map, fromList, lookup)
-import Data.List
-import Data.Maybe(fromMaybe, catMaybes, mapMaybe, fromJust)
+import           Data.List
+import qualified Data.Map.Lazy as Map
+import           Data.Maybe (fromMaybe, mapMaybe)
 
 data PrimType
   = Int
@@ -10,8 +10,8 @@ data PrimType
   deriving (Eq)
 
 instance Show PrimType where
-  show Int = "Int"
-  show Bool = "Bool"
+  show Int      = "Int"
+  show Bool     = "Bool"
   show (Poly t) = t
 
 data TypeConstructor
@@ -38,6 +38,8 @@ instance Show Identifier where show (Identifier s) = s
 
 data Function = Function { name :: String, domain :: [Type], range :: Type }
 instance Show Function where show = name
+instance Eq   Function where (==) f1 f2 = name f1 == name f2
+instance Ord  Function where (<=) f1 f2  = name f1 <= name f2
 
 data Term
   = Hole PrimType
@@ -68,12 +70,12 @@ functions = [Function { name    = "List.build",
                         range    = List (Prim (Poly "t")) }
             ]
 
-functionsMap :: Data.Map.Map String Function
-functionsMap = Data.Map.fromList $ zip (map name functions) functions
+functionsMap :: Map.Map String Function
+functionsMap = Map.fromList $ zip (map name functions) functions
 
 getFunction :: String -> Function
 getFunction funcname = fromMaybe (error "No such function") f
-  where f = Data.Map.lookup funcname functionsMap
+  where f = Map.lookup funcname functionsMap
 
 data Subst = Subst String Type deriving (Show)
 
@@ -86,34 +88,31 @@ unify :: Type -> Type -> (Maybe Type, [Subst])
 unify (Prim Int)  (Prim Int)      = (Just (Prim Int), [])
 unify (Prim Bool) (Prim Bool)     = (Just (Prim Bool), [])
 
-unify (Prim (Poly t)) tt@(Prim (Poly t')) = (Just (applySubsts substs tt), substs) where substs = [Subst t' (Prim (Poly t))]
-unify tt@(Prim _) tt'@(Prim (Poly t'))   = (Just (applySubsts substs tt'), substs) where substs = [Subst t' tt]
-unify tt@(Constructor _ _) tt'@(Prim (Poly t')) = (Just (applySubsts substs tt'), substs) where substs = [Subst t' tt]
-unify tt@(Prim (Poly _))   tt'   = unify tt' tt
+unify t@(Prim (Poly _))      (Prim (Poly tname))  = (Just t, substs) where substs = [Subst tname t]
+unify t@(Prim _)          t'@(Prim (Poly tname))  = (Just (applySubsts substs t'), substs) where substs = [Subst tname t]
+unify t@(Constructor _ _) t'@(Prim (Poly tname))  = (Just (applySubsts substs t'), substs) where substs = [Subst tname t]
+unify tt@(Prim (Poly _))     tt'                  = unify tt' tt
 
-
-unify (List t) (List t') = (Just (applySubsts substs t'), substs)
-  where unifiedType = unify t t'
-        substs = snd unifiedType
+unify (List t) (List t') = (Just (applySubsts substs t'), substs) where substs = snd $ unify t t'
 
 unify f@(Func _ _) f'@(Func _ _) = if f == f' then (Just f, []) else (Nothing, [])
 
 unify (Constructor tconstr types) (Constructor tconstr' types') =
-  if tconstr == tconstr' && all (== length types) [length types', length unifiedTypes]
+  if tconstr == tconstr' && all (== length types) [length types', length unified]
       then (Just (Constructor tconstr (map (applySubsts substs) types)), substs)
       else (Nothing, [])
-  where unifiedTypes =  [(t,s) | (Just t, s) <- zipWith unify types types']
-        substs = concatMap snd unifiedTypes
+  where unified = [(t,s) | (Just t, s) <- zipWith unify types types']
+        substs = concatMap snd [(t,s) | (Just t, s) <- zipWith unify types types']
 
 unify _ _                 = (Nothing, [])
 
 
 applySubsts :: [Subst] -> Type -> Type
-applySubsts substs tt@(Prim (Poly name)) =
+applySubsts substs tt@(Prim (Poly tname)) =
   case newType of
     Just (Subst _ nt) -> nt
-    Nothing -> tt
-  where newType = find (\(Subst name' _) -> name == name') substs
+    Nothing           -> tt
+  where newType = find (\(Subst tname' _) -> tname == tname') substs
 
 applySubsts substs (List t) = List (applySubsts substs t)
 applySubsts substs (Constructor tconstr types) = Constructor tconstr (map (applySubsts substs) types)
@@ -135,27 +134,30 @@ freshvar :: [Term] -> Type -> Identifier
 freshvar env _ = Identifier ("x" ++ show i) where
   i = length $ filter (\t -> case t of Var _ _ -> True; _ -> False) env
 
+data Env = Env { variables :: [Term], usedFuncs :: Map.Map String Int }
 
-generate :: [Term] -> Type -> [Term]
+generate :: Env -> Type -> [Term]
 generate env (Prim t) = Hole t :
-  [Application f args | f <- functionsByRange (Prim t),
-                        args <- sequence [generate env t' | t' <- domain f]]
+  [Application f args | f <- functionsByRange (Prim t), args <- allowedArgs f] where
+    allowedArgs f = sequence [generate env { usedFuncs = Map.insertWith (+) (name f) 1 (usedFuncs env) } t' | t' <- domain f]
 
 generate env (List (Prim t)) = HoleList t :
-  [Application f args | f <- functionsByRange (List (Prim t)),
-                        args <- sequence [generate env t' | t' <- domain f]]
+  [Application f args | f <- functionsByRange (List (Prim t)), args <- allowedArgs f] where
+    allowedArgs f = sequence [generate env { usedFuncs = Map.insertWith (+) (name f) 1 (usedFuncs env) } t' | t' <- domain f]
 
 generate env (List t) =
-  [Application f args | f <- functionsByRange (List t),
-                        args <- sequence [generate env t' | t' <- domain f]]
+  [Application f args | f <- functionsByRange (List t), args <- allowedArgs f] where
+    allowedArgs f = sequence [generate env { usedFuncs = Map.insertWith (+) (name f) 1 (usedFuncs env) } t' | t' <- domain f]
 
 generate env (Func dom ran) = [Abstraction vars body | body <- bodies] where
-  vars = map (freshvar env) dom
-  bodies = generate (env ++ zipWith Var vars dom) ran
+  vars = map (freshvar (variables env)) dom
+  bodies = generate Env { variables = variables env ++ zipWith Var vars dom, usedFuncs = usedFuncs env } ran
 
 generate env termType@(Constructor constr types) =
-  [Application f args | f <- functionsByRange termType,
-                        args <- sequence [generate env t | t <- domain f]]
+  [Application f args | f <- allowedFuncs, args <- allowedArgs f] where
+    allowedArgs f = sequence [generate Env { variables = variables env, usedFuncs = Map.insertWith (+) (name f) 1 (usedFuncs env) } t | t <- domain f]
+    allowedFuncs = filter isAllowed (functionsByRange termType)
+    isAllowed func = case Map.lookup (name func) (usedFuncs env) of (Just n) -> n < 2; Nothing -> True
 
 
 main :: IO ()
