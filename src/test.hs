@@ -3,6 +3,7 @@ import           Data.List
 import qualified Data.Map.Lazy as Map
 import           Data.Maybe (fromMaybe, mapMaybe)
 
+
 data PrimType
   = Int
   | Bool
@@ -159,6 +160,14 @@ generate env termType@(Constructor constr types) =
     allowedFuncs = filter isAllowed (functionsByRange termType)
     isAllowed func = case Map.lookup (name func) (usedFuncs env) of (Just n) -> n < 2; Nothing -> True
 
+countFunc :: String -> Term -> Int
+countFunc n (Application func terms) = (if name func == n then 1 else 0) + sum (map (countFunc n) terms)
+countFunc _ _ = 0
+
+
+testGen :: Type -> Int -> IO ()
+testGen t n = mapM_ print (take n generated)
+  where generated = generate Env{ variables = [], usedFuncs = Map.empty } t
 
 main :: IO ()
 main = putStr ""
