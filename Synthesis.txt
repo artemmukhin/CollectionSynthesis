@@ -97,9 +97,52 @@ records: Collection<Record>
 query q(val1: Int, val2: Int) =
   numbers
   |> filter (\r -> r.value1 < val1 && r.value2 < val2)
-  |> map (\r -> r.value1 * r.value2) 
+  |> map (\r -> r.value1 * r.value2)
   |> max
 
 q:
   get< "value1"
   get< "value2"
+
+
+---------------------------------------------------
+
+query(xs) ::=
+  | xs
+  | filter  (\x -> pred(x))               query(xs)
+  | map     (\x -> func(x))               query(xs)
+  | find    (\x -> pred(x))               query(xs)
+  | foldl   (\acc x -> func(acc, x)) acc  query(xs)
+
+func(acc, x) ::=
+  | acc | x
+  | {acc | 0 | 1} {+|-|*} {x | 0 | 1}
+  | (func(acc, x), func(acc, x))
+  | if pred(acc, x) then func(acc, x) else func(acc, x)
+
+---------------------------------------------------
+--------------------SyGuS--------------------------
+Рассмотрим задачу про граф.
+
+record Edge { src: Int, dst: Int }
+graph: SetOf<Edge>
+query findEdges(n: int) = filter (\e -> e.src == n || e.dst == n) graph
+
+Допустим, синтезатор перебирал возможные виды findEdges. Один из таких видов:
+findEdges n = List.concat (▢: List) (▢: List)
+
+Пусть ▢ были заполнены так:
+let table1: Map<Int, List<Edge>> = ▢
+let table2: Map<Int, List<Edge>> = ▢
+findEdges n = List.concat (Map.get △ table1) (Map.get △ table1)
+
+Теперь на место △ можно поставить какое-то Arith(n). Пусть это будет n.
+let table1: Map<Int, List<Edge>> = ▢
+let table2: Map<Int, List<Edge>> = ▢
+findEdges n = List.concat (Map.get n table1) (Map.get n table2)
+
+Теперь ▢ должны иметь следующий вид:
+let table1 = Map.build (\e1 -> (▢: Int, List.build (filter (\e2 -> ▢: Bool) graph))) (filter (\e3 -> ▢: Bool) graph)
+let table2 = Map.build (\e1 -> (△: Int, List.build (filter (\e2 -> △: Bool) graph))) (filter (\e3 -> △: Bool) graph)
+
+Для заполнения этих ▢ и △ используем SyGuS.
