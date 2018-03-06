@@ -121,6 +121,7 @@ func(acc, x) ::=
   | if pred(acc, x) then func(acc, x) else func(acc, x)
 
 ---------------------------------------------------
+▢ △ ☆ ♢ ♤ ♧ ◎
 --------------------SyGuS--------------------------
 Рассмотрим задачу про граф.
 
@@ -134,15 +135,18 @@ findEdges n = List.concat (▢: List) (▢: List)
 Пусть ▢ были заполнены так:
 let table1: Map<Int, List<Edge>> = ▢
 let table2: Map<Int, List<Edge>> = ▢
-findEdges n = List.concat (Map.get △ table1) (Map.get △ table1)
+findEdges n = List.concat (Map.get ☆1 table1) (Map.get ☆2 table1)
 
-Теперь на место △ можно поставить какое-то Arith(n). Пусть это будет n.
-let table1: Map<Int, List<Edge>> = ▢
-let table2: Map<Int, List<Edge>> = ▢
-findEdges n = List.concat (Map.get n table1) (Map.get n table2)
-
+На место △ можно поставить какое-то Arith(n) (это делает SyGuS).
 Теперь ▢ должны иметь следующий вид:
-let table1 = Map.build (\e1 -> (▢: Int, List.build (filter (\e2 -> ▢: Bool) graph))) (filter (\e3 -> ▢: Bool) graph)
-let table2 = Map.build (\e1 -> (△: Int, List.build (filter (\e2 -> △: Bool) graph))) (filter (\e3 -> △: Bool) graph)
+let table1 = Map.build (\e1 -> (▢1: Int, List.build (filter (\e2 -> △1: Bool) graph))) (filter (\e3 -> ♢1: Bool) graph)
+let table2 = Map.build (\e1 -> (▢2: Int, List.build (filter (\e2 -> △2: Bool) graph))) (filter (\e3 -> ♢2: Bool) graph)
 
-Для заполнения этих ▢ и △ используем SyGuS.
+Для заполнения этих ▢ и △ используем SyGuS. Примерная спецификация (Arith и Pred задаются грамматиками):
+☆1, ☆2: Int   ~ Arith(n)
+▢1, ▢2: Bool  ~ Pred(n, e1.src, e1.dst)
+△1, △2: Bool  ~ Pred(n, e2.src, e2.dst)
+♢1, ♢2: Bool  ~ Pred(e3.src, e3.dst)
+
+assert. forall n forall e: (e.src == n || e.dst == n) <=>
+  n in (concat (find (\(k, _) -> k == ☆1) table1) (find (\(k, _) -> k == ☆2) table2))
