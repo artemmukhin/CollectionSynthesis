@@ -133,11 +133,12 @@ query findEdges(n: int) = filter (\e -> e.src == n || e.dst == n) graph
 findEdges n = List.concat (▢: List) (▢: List)
 
 Пусть ▢ были заполнены так:
-let table1: Map<Int, List<Edge>> = ▢
-let table2: Map<Int, List<Edge>> = ▢
 findEdges n = List.concat (Map.get ☆1 table1) (Map.get ☆2 table1)
+where
+  table1: Map<Int, List<Edge>> = ▢
+  table2: Map<Int, List<Edge>> = ▢
 
-На место △ можно поставить какое-то Arith(n) (это делает SyGuS).
+На место ☆ можно поставить какое-то Arith(n) (это делает SyGuS).
 Теперь ▢ должны иметь следующий вид:
 let table1 = Map.build (\e1 -> (▢1: Int, List.build (filter (\e2 -> △1: Bool) graph))) (filter (\e3 -> ♢1: Bool) graph)
 let table2 = Map.build (\e1 -> (▢2: Int, List.build (filter (\e2 -> △2: Bool) graph))) (filter (\e3 -> ♢2: Bool) graph)
@@ -148,5 +149,69 @@ let table2 = Map.build (\e1 -> (▢2: Int, List.build (filter (\e2 -> △2: Bool
 △1, △2: Bool  ~ Pred(n, e2.src, e2.dst)
 ♢1, ♢2: Bool  ~ Pred(e3.src, e3.dst)
 
-assert. forall n forall e: (e.src == n || e.dst == n) <=>
+assert (forall n forall e:
+  (e.src == n || e.dst == n) <=>
   n in (concat (find (\(k, _) -> k == ☆1) table1) (find (\(k, _) -> k == ☆2) table2))
+)
+
+
+*** top frequent word ***
+
+record Word { value: String }
+words: Collection<Word>
+query count(val: String) = size (filter (\w -> w.value == val) words)
+query topFrequent() =  maximize (\w -> count w.value) words
+
+
+Шаги синтезатора:
+1.
+topFrequent = PQueue.pop (▢: PQueue)
+
+2.
+topFrequent = PQueue.pop (wordsHeap)
+where
+  wordsHeap: PQueue<Word> = ▢
+
+3.
+topFrequent = PQueue.pop (wordsHeap)
+  where
+  3.1.
+    wordsHeap: PQueue<Word> = PQueue.build (\w -> ☆1: Int) (filter (\w -> △1: Bool) words)
+  3.2.
+    wordsHeap: PQueue<Word> = PQueue.pop (▢2: PQueue)
+  3.3.
+    wordsHeap: PQueue<Word> = PQueue.push (♢3: Word) (▢3: PQueue)
+
+
+4.1. Заполним ☆1: Int
+  4.1.1.
+    ☆1 тривиальна, SyGuS заполняет ее с помощью w, w.value, count(...) и стандартных функций для строк
+  4.1.2.
+    ☆1 нетривиальна. Тогда перед запуском SyGuS надо составить каркас ☆1.
+    Рассмотрим все функции типа ... -> Int.
+    Это:  List.head, List.size, List.maximize, List.find, Array.size, Array.get,
+          Set.size, Set.find, Set.maximize, Map.size, Map.get, ...
+    4.1.2.1.
+      Пусть синтезатор дошел до Map.get.
+      ☆1 = Map.get (△: K) (▢: Map<K, Int>)
+      В качестве K можно выбрать Int, String, Bool, Word. Пусть синтезатор выбрал Word.
+      ☆1 = Map.get (△: Word) (▢: Map<Word, Int>)
+      В нашем контексте есть только один представитель Word -- w.
+      ☆1 = Map.get w (▢: Map<Word, Int>)
+      Заполним ▢.
+        1) можно выбрать из Map.build, Map.filterK, Map.filterV, Map.add:
+            ▢: Map<Word, Int> = Map.build (\w -> ☆: Int) (filter (\w -> △) words)
+        2) можно добавить ещё колекцию и сделать что-то вроде
+            Map<Word, Map<Word, Int>> или List<Map<Word, Int>> ...
+      Пусть синтезатор пошел по 1) пути и пусть ☆ тривиальна.
+        ☆ = Arith(w.value, count(...))
+      SyGuS должен выдать ☆ = w.value, △ = True в соответствии с ограничениями:
+        assert (forall state
+          topFrequent = Word <=> forall w in words: count w.value <= count Word.value
+        )
+
+      Тогда имеем
+        topFrequent = PQueue.pop (wordsHeap)
+        where
+          wordsHeap: PQueue<Word> = PQueue.build (\w -> Map.get w countMap) words
+          countMap: Map<Word, Int> = Map.build (\w -> w.value) words
