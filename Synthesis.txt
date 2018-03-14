@@ -154,31 +154,47 @@ assert (forall n forall e:
   n in (concat (find (\(k, _) -> k == ☆1) table1) (find (\(k, _) -> k == ☆2) table2))
 )
 
+-------------------------------------
+findEdges n ~
+
+List.concat (Map.get ☆1 table1) (Map.get ☆2 table1) where
+  table1 = Map.build (\e1 -> (▢1: Int, List.build (filter (\e2 -> △1: Bool) graph))) (filter (\e3 -> ♢1: Bool) graph)
+  table2 = Map.build (\e1 -> (▢2: Int, List.build (filter (\e2 -> △2: Bool) graph))) (filter (\e3 -> ♢2: Bool) graph) ~
+
+List.concat
+  snd (get (\(k, _) -> k == ☆1) Map.build (\e1 -> (▢1: Int, List.build (filter (\e2 -> △1: Bool) graph))) (filter (\e3 -> ♢1: Bool) graph))
+  snd (get (\(k, _) -> k == ☆2) Map.build (\e1 -> (▢2: Int, List.build (filter (\e2 -> △2: Bool) graph))) (filter (\e3 -> ♢2: Bool) graph)) ~
+
+List.concat
+  snd (get (\(k, _) -> k == ☆1) map (\e1 -> (▢1: Int, filter (\e2 -> △1: Bool) graph)) (filter (\e3 -> ♢1: Bool) graph))
+
+
+-------------------------------------
 
 *** top frequent word ***
 
 record Word { value: String }
 words: Collection<Word>
-query count(val: String) = size (filter (\w -> w.value == val) words)
+let count(val: String) = size (filter (\w -> w.value == val) words)
 query topFrequent() =  maximize (\w -> count w.value) words
 
 
 Шаги синтезатора:
 1.
-topFrequent = PQueue.pop (▢: PQueue)
+topFrequent = PQueue.peak (▢: PQueue)
 
 2.
-topFrequent = PQueue.pop (wordsHeap)
+topFrequent = PQueue.peak (wordsHeap)
 where
   wordsHeap: PQueue<Word> = ▢
 
 3.
-topFrequent = PQueue.pop (wordsHeap)
+topFrequent = PQueue.peak (wordsHeap)
   where
   3.1.
     wordsHeap: PQueue<Word> = PQueue.build (\w -> ☆1: Int) (filter (\w -> △1: Bool) words)
   3.2.
-    wordsHeap: PQueue<Word> = PQueue.pop (▢2: PQueue)
+    wordsHeap: PQueue<Word> = PQueue.peak (▢2: PQueue)
   3.3.
     wordsHeap: PQueue<Word> = PQueue.push (♢3: Word) (▢3: PQueue)
 
@@ -205,7 +221,7 @@ topFrequent = PQueue.pop (wordsHeap)
           Map<Word, Map<Word, Int>> или List<Map<Word, Int>> ...
     Пусть синтезатор пошел по 1) пути и пусть ☆ тривиальна. ☆ = Arith(w.value, count(...))
     SyGuS должен выдать ☆ = count w.value, △ = True в соответствии с ограничениями:
-      topFrequent = PQueue.pop (wordsHeap)
+      topFrequent = PQueue.peak (wordsHeap)
       wordsHeap: PQueue<Word> = PQueue.build (\w -> Map.get w (▢: Map<Word, Int>)) words
       where
         ▢: Map<Word, Int> = Map.build (\w -> ☆: Int) (filter (\w -> △) words)

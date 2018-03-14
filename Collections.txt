@@ -30,7 +30,7 @@ safeHead xs     = if length xs > 0 then Some (head xs) else None
 ** Basic **
 
 * List<T>
-List.build      :: [T] -> List<T>                               
+List.build      :: [T] -> List<T>
 List.head       :: List<T> -> T                                                         O(1)
 List.tail       :: List<T> -> List<T>                                                   O(1)
 List.last       :: List<T> -> T                                                         O(1)
@@ -71,7 +71,7 @@ Array.get ind xs        ~ head (filter (\(_, i) -> i == ind) xs)
 Array.set ind val xs    ~ map (\(x, i) -> if i == ind then (val, i) else (x, i)) xs
 
 
-* typeclass Set<T>            
+* typeclass Set<T>
 Set.build       :: [T] -> Set<T>
 Set.filter      :: (T -> Bool) -> Set<T> -> Set<T>
 Set.size        :: Set<T> -> Int
@@ -139,12 +139,12 @@ HashSet.find        :: T -> HashSet<T>                              O(1)
 HashSet.contains    :: T -> HashSet<T> -> Bool                      O(1)
 HashSet.maximize    :: (T -> Number) -> HashSet<T> -> T             O(n)
 HashSet.minimize    :: (T -> Number) -> HashSet<T> -> T             O(n)
-HashSet.add         :: T -> HashSet<T> -> HashSet<T>                
+HashSet.add         :: T -> HashSet<T> -> HashSet<T>
 HashSet.union       :: HashSet<T> -> HashSet<T> -> HashSet<T>       O(n)
 
 * TreeSet<T>  <:  Set<T>
 TreeSet.build       :: [T] -> TreeSet<T>
-TreeSet.filter      :: (T -> Bool) -> TreeSet<T> -> TreeSet<T>      
+TreeSet.filter      :: (T -> Bool) -> TreeSet<T> -> TreeSet<T>
 TreeSet.size        :: TreeSet<T> -> Int                            O(1)
 TreeSet.find        :: T -> TreeSet<T> -> Maybe T                   O(log n)
 TreeSet.contains    :: T -> TreeSet<T> -> Bool                      O(log n)
@@ -157,11 +157,16 @@ TreeSet.add         :: T -> TreeSet<T> -> TreeSet<T>
 
 * TreeMap<K, V, (K -> V)>
 
-* PriorityQueue<T, (T -> Number)>
-PriorityQueue.build      :: (T -> Number) -> [T] ->  PriorityQueue<T>
-PriorityQueue.pop        :: PriorityQueue<T> -> PriorityQueue<T>
-PriorityQueue.push       :: T -> PriorityQueue<T> -> PriorityQueue<T>
-PriorityQueue.size       :: PriorityQueue<T> -> Int
+* PQueue<T, (T -> Number)>
+PQueue.build      :: (T -> Number) -> [T] ->  PQueue<T>
+PQueue.pop        :: PQueue<T> -> PQueue<T>
+PQueue.pick       :: PQueue<T> -> T
+PQueue.push       :: T -> PQueue<T> -> PQueue<T>
+PQueue.size       :: PQueue<T> -> Int
+
+PQueue.build f xs ~ xs' | xs :: list, xs' :: list sorted by f
+PQueue.pop (PQueue.build f xs) ~ maximize f xs
+
 
 * BinaryTree<T, (T -> Number)>
 BinaryTree.build    :: (T -> Number) -> [T] -> BinaryTree<T>
