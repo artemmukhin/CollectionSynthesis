@@ -1,0 +1,48 @@
+[<Start>]
+
+hole<t>: '_' t '_';
+
+abstr<body>: '(λx.' body ')';
+
+//func<t t>: '1' | 'x + 1';
+
+func<dom codom>: codom<x>;
+
+pred<t>: 'x == 0';
+
+int<var>: var '+ 1' | var '+ 2';
+
+collection<t>:
+                  list<t>
+                | set<t>;
+
+list<t>:
+          'List.build '                              simplelist<collection<t>>
+        | 'List.map '       abstr<func<t t>>         list<t>
+        | 'List.filter '    abstr<pred<t>>           list<t>;
+
+set<t>:
+          'Set.build '                                simplelist<collection<t>>
+        | 'Set.filter '     '(λx.' pred<t> ')'        set<t>;
+
+item<t>:
+          'List.head '                                list<t>
+        | 'List.find '      abstr<pred<t>>            list<t>
+        | 'Set.find '       abstr<pred<t>>            set<t>;
+
+simplelist<t>:
+          '[' t ']'
+//        | 'List.contents'   list<t>
+//        | 'Set.contents'    set<t>;
+
+result: list<int>
+
+
+
+
+//intItem: item<int>;
+// listOfInt: list<INT>;
+// listOfListOfInt: list<list<INT>>;
+// listOfSetOfInt: list<set<INT>>;
+// list<set<INT>>
+// List.head (List.build [_])
