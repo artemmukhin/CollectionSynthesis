@@ -78,3 +78,6 @@ testReduce =
 
 test :: Bool
 test = testTypes && testShow && testReduce
+
+main :: IO ()
+main =  putStrLn $ if test then "Tests completed successfully!" else "Tests failure"
