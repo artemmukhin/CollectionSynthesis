@@ -19,6 +19,7 @@ name = String
 number = Int
 -}
 
+
 languageDef =
   emptyDef { Token.commentStart     = "/*"
            , Token.commentEnd       = "*/"
@@ -40,11 +41,12 @@ languageDef =
                                       , "Bool"
                                       ]
            , Token.reservedOpNames  = [ "+", "-", "*", "/", "=", "==", "%", "->",
-                                        ":", "<", ">", "and", "or", "not"]
+                                        ":", "<", ">", "and", "or", "not", "$"]
            }
 
 type Params = [Param]
-data Query = Query { qname :: String, qparams :: Params, qbody :: Expr }
+data Query = Query { qname :: String, qparams :: Params, qbody :: Expr } deriving (Eq, Show)
+data Lambda = Lambda { lparam :: Param, lexpr :: Expr }
 
 lexer = Token.makeTokenParser languageDef
 
@@ -71,7 +73,7 @@ query = do
   reservedOp "="
   spaces
   expression <- expr
-  return Query {}
+  return Query { qname = name, qparams = parameters, qbody = expression }
 
 params :: Parser Params
 params = sepBy1 param comma
@@ -113,22 +115,32 @@ func = filterFunc <|> mapFunc
 filterFunc :: Parser Func
 filterFunc = do
   reserved "filter"
-  b <- lambda
-  return Filter { dom = ("x", Int), body = b }
-
--- TODO
-lambda = identifier
+  lam <- lambda
+  return Filter { dom = lparam lam, body = lexpr lam }
 
 mapFunc :: Parser Func
 mapFunc = do
   reserved "map"
-  b <- lambda
-  return Map { dom = ("x", Int), codom = Int, body = b }
+  lam <- lambda
+  return Map { dom = lparam lam, codom = Int, body = lexpr lam }
+
+-- TODO
+lambda :: Parser Lambda
+lambda = do
+  reserved "("
+  reservedOp "$"
+  parameter <- param
+  spaces
+  reserved "->"
+  spaces
+  expression <- expr
+  reserved ")"
+  return Lambda { lparam = parameter, lexpr = expression }
 
 primExpr :: Parser Expr
 primExpr = collection
 
-collection :: Expr
+collection :: Parser Expr
 collection = do
   name <- identifier
-  return Collection name Int
+  return $ Collection name Int
