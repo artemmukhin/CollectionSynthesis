@@ -20,6 +20,7 @@ newtype Param = Param (String, Type) deriving (Eq, Show)
 instance Pretty Param where
   pretty (Param (s, _)) = s
 
+type Params = [Param]
 
 data Func
   = Map { dom :: Param, codom :: Type, body :: Expr }
@@ -27,13 +28,15 @@ data Func
   | MapFilter { dom :: Param, codom :: Type, bodyFilter :: Expr, bodyMap :: Expr }
   deriving (Eq, Show)
 
-prettyLambda :: Param -> Expr -> String
-prettyLambda d b = "(λ" ++ pretty d ++ ". " ++ pretty b ++ ")"
+data Lambda = Lambda { lparam :: Param, lexpr :: Expr }
+instance Pretty Lambda where
+  pretty (Lambda d b) = "(λ" ++ pretty d ++ ". " ++ pretty b ++ ")"
+
 
 instance Pretty Func where
-  pretty (Map d _ b) = "map " ++ prettyLambda d b
-  pretty (Filter d b) = "filter " ++ prettyLambda d b
-  pretty (MapFilter d _ bf bm) = "mapFilter " ++ prettyLambda d bf ++ " " ++ prettyLambda d bm
+  pretty (Map d _ b) = "map " ++ pretty (Lambda d b)
+  pretty (Filter d b) = "filter " ++ pretty (Lambda d b)
+  pretty (MapFilter d _ bf bm) = "mapFilter " ++ pretty (Lambda d bf) ++ " " ++ pretty (Lambda d bm)
 
 
 data PrimExpr
@@ -66,6 +69,17 @@ instance Pretty Expr where
   pretty (Prim expr) =  pretty expr
   pretty (Compose e1 e2) = "((" ++ pretty e1 ++ ") . (" ++ pretty e2 ++ "))"
 
+
+data Query = Query { qname :: String, qparams :: Params, qbody :: Expr } deriving (Eq, Show)
+type Record = [Param]
+
+data Declaration
+  = QueryDef Query
+  | CollectionDef Expr
+  | RecordDef Record
+  deriving (Eq, Show)
+
+type Spec = [Declaration]
 
 typeOf :: Expr -> Type
 typeOf (Hole t) = t

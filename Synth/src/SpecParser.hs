@@ -44,9 +44,6 @@ languageDef =
                                         ":", "<", ">", "and", "or", "not", "$"]
            }
 
-type Params = [Param]
-data Query = Query { qname :: String, qparams :: Params, qbody :: Expr } deriving (Eq, Show)
-data Lambda = Lambda { lparam :: Param, lexpr :: Expr }
 
 lexer = Token.makeTokenParser languageDef
 
@@ -58,10 +55,14 @@ integer    = Token.integer    lexer
 comma      = Token.comma      lexer
 whiteSpace = Token.whiteSpace lexer
 
-specParser :: Parser Query
-specParser = whiteSpace >> query
+specParser :: Parser Spec
+specParser = whiteSpace >> (sepBy1 declaration whiteSpace)
 
-query :: Parser Query
+declaration :: Parser Declaration
+declaration = query <|> collection
+
+
+query :: Parser Declaration
 query = do
   reserved "query"
   spaces
@@ -73,7 +74,7 @@ query = do
   reservedOp "="
   spaces
   expression <- expr
-  return Query { qname = name, qparams = parameters, qbody = expression }
+  return $ QueryDef Query { qname = name, qparams = parameters, qbody = expression }
 
 params :: Parser Params
 params = sepBy1 param comma
@@ -101,7 +102,7 @@ boolType = do
   return Bool
 
 expr :: Parser Expr
-expr = funcExpr <|> primExpr
+expr = funcExpr <|> primExpr <|> parens expr
 
 funcExpr :: Parser Expr
 funcExpr = do
@@ -138,9 +139,15 @@ lambda = do
   return Lambda { lparam = parameter, lexpr = expression }
 
 primExpr :: Parser Expr
-primExpr = collection
+primExpr = do
+  ident <- identifier
+  return $ Collection ident Int
 
-collection :: Parser Expr
+collection :: Parser Declaration
 collection = do
   name <- identifier
-  return $ Collection name Int
+  spaces
+  reservedOp ":"
+  spaces
+  t <- primType
+  return $ CollectionDef (Collection name t)
