@@ -56,11 +56,10 @@ comma      = Token.comma      lexer
 whiteSpace = Token.whiteSpace lexer
 
 specParser :: Parser Spec
-specParser = whiteSpace >> (sepBy1 declaration whiteSpace)
+specParser = whiteSpace >> sepBy1 declaration whiteSpace
 
 declaration :: Parser Declaration
 declaration = query <|> collection
-
 
 query :: Parser Declaration
 query = do
@@ -123,7 +122,7 @@ mapFunc :: Parser Func
 mapFunc = do
   reserved "map"
   lam <- lambda
-  return Map { dom = lparam lam, codom = Int, body = lexpr lam }
+  return Map { dom = lparam lam, codom = Unknown, body = lexpr lam }
 
 -- TODO
 lambda :: Parser Lambda
@@ -141,7 +140,7 @@ lambda = do
 primExpr :: Parser Expr
 primExpr = do
   ident <- identifier
-  return $ Collection ident Int
+  return $ Collection ident Unknown
 
 collection :: Parser Declaration
 collection = do
