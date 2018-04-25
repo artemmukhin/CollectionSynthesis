@@ -48,14 +48,14 @@ instance Pretty Variable where
   pretty (Variable s) = s
 
 data PrimExpr
-  = Var Variable
+  = Var String
   | IntConst Integer
   | Unary String PrimExpr
   | Binary String PrimExpr PrimExpr
   deriving (Eq, Show)
 
 instance Pretty PrimExpr where
-  pretty (Var v) = pretty v
+  pretty (Var v) = v
   pretty (IntConst n) = show n
   pretty (Unary op e) = op ++ " " ++ pretty e
   pretty (Binary op e1 e2)  = pretty e1 ++ " " ++ op ++ " " ++ pretty e2

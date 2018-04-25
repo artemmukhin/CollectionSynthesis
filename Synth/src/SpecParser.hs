@@ -140,7 +140,7 @@ lambda = do
 primExpr :: Parser Expr
 primExpr = do
   ident <- identifier
-  return $ Collection ident Unknown
+  return $ Prim (Var ident)
 
 collection :: Parser Declaration
 collection = do
@@ -149,4 +149,4 @@ collection = do
   reservedOp ":"
   spaces
   t <- primType
-  return $ CollectionDef (Collection name t)
+  return $ CollectionDef (Prim (Var name))

@@ -1,25 +1,12 @@
 {-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE OverloadedStrings #-}
-module SolutionLanguage where
+module Solution2JSON where
 import CollectionLanguage
 import Data.Text (Text, pack)
 import Data.Aeson hiding (Bool)
 
 
-data Program =
-  Program { recordDecls     :: [RecordDecl]
-          , collectionDefs  :: [CollectionDef]
-          , querieDefs      :: [QueryDef]
-          } deriving Show
-
-newtype Param = Param (String, PrimType) deriving (Eq, Show)
-type Params = [Param]
-type RecordDecl = Params
-
-data CollectionDef = CollectionDef { cname :: Text, ctype :: Type, cinit :: Term } deriving (Show)
-
-data QueryDef = QueryDef { qname :: Text, qparams :: Params, qbody :: Term } deriving (Show)
 
 instance ToJSON Program where
   toJSON (Program rs cs qs) =

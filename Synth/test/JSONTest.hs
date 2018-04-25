@@ -1,6 +1,6 @@
-module SolutionTest where
+module JSONTest where
 import CollectionLanguage
-import SolutionLanguage
+import Solution2JSON
 import Data.Text (Text, pack)
 import Data.Aeson hiding (Bool)
 import Data.Aeson.Text (encodeToLazyText)
@@ -20,7 +20,7 @@ edgeType = Record "Edge" [("src", Int), ("dst", Int)]
 
 graph :: CollectionDef
 graph = CollectionDef {
-  cname = pack "graph",
+  cname = pack "table",
   ctype = Constructor MyMap [Prim Int, Constructor MySet [Prim edgeType]],
   cinit = mapInit }
 

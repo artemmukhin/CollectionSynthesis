@@ -104,7 +104,7 @@
         },
         "termType": "Application"
       },
-      "name": "graph",
+      "name": "table",
       "type": {
         "typeParams": [
           {

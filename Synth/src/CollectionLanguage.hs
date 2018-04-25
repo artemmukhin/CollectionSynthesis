@@ -3,6 +3,7 @@ module CollectionLanguage where
 import           Data.List
 import qualified Data.Map.Lazy as Map
 import           Data.Maybe (fromMaybe, mapMaybe)
+import Data.Text (Text)
 
 data PrimType
   = Int
@@ -185,3 +186,18 @@ countFunc _ _ = 0
 testGen :: Type -> Int -> IO ()
 testGen t n = mapM_ print (take n generated)
   where generated = generate Env{ variables = [], usedFuncs = Map.empty } t
+
+
+data Program =
+  Program { recordDecls     :: [RecordDecl]
+          , collectionDefs  :: [CollectionDef]
+          , querieDefs      :: [QueryDef]
+          } deriving Show
+
+newtype Param = Param (String, PrimType) deriving (Eq, Show)
+type Params = [Param]
+type RecordDecl = Params
+
+data CollectionDef = CollectionDef { cname :: Text, ctype :: Type, cinit :: Term } deriving (Show)
+
+data QueryDef = QueryDef { qname :: Text, qparams :: Params, qbody :: Term } deriving (Show)
