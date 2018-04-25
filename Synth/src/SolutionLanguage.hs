@@ -99,20 +99,3 @@ instance ToJSON Function where
             , "domain"    .= toJSON d
             , "codomain"  .= toJSON c
             ]
-
-{-
-data Person =
-  Person { firstName  :: !Text
-         , lastName   :: !Text
-         , age        :: Int
-         , likesPizza :: Bool
-           } deriving Show
-
-instance ToJSON Person where
-toJSON (Person firstName lastName age likesPizza) =
-   object [ "firstName"  .= firstName
-          , "lastName"   .= lastName
-          , "age"        .= age
-          , "likesPizza" .= likesPizza
-            ]
--}

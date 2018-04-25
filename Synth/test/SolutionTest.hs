@@ -21,7 +21,7 @@ edgeType = Record "Edge" [("src", Int), ("dst", Int)]
 graph :: CollectionDef
 graph = CollectionDef {
   cname = pack "graph",
-  ctype = Constructor MyMap [Prim Int, Prim edgeType],
+  ctype = Constructor MyMap [Prim Int, Constructor MySet [Prim edgeType]],
   cinit = mapInit }
 
 graphTerm :: Term

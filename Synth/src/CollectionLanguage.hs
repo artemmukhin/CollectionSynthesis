@@ -11,8 +11,6 @@ data PrimType
   | Record Identifier [(Identifier, PrimType)]
   deriving (Eq)
 
-
-
 instance Show PrimType where
   show Int      = "Int"
   show Bool     = "Bool"
