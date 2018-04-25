@@ -1,25 +1,34 @@
+{-# LANGUAGE LambdaCase #-}
 module CollectionLanguage where
 import           Data.List
 import qualified Data.Map.Lazy as Map
 import           Data.Maybe (fromMaybe, mapMaybe)
 
-
 data PrimType
   = Int
   | Bool
-  | Poly String
+  | Poly Identifier
+  | Record Identifier [(Identifier, PrimType)]
   deriving (Eq)
+
+
 
 instance Show PrimType where
   show Int      = "Int"
   show Bool     = "Bool"
   show (Poly t) = t
+  show (Record name elems) = name ++ " { " ++ intercalate "," (map show elems) ++ " }"
 
 data TypeConstructor
   = MyList
   | MyMap
   | MySet
-  deriving (Show, Eq)
+  deriving (Eq)
+
+instance Show TypeConstructor where
+  show MyList = "List"
+  show MyMap  = "Map"
+  show MySet  = "Set"
 
 data Type
   = Prim PrimType
@@ -32,10 +41,9 @@ instance Show Type where
   show (Prim pt)      = show pt
   show (List pt)      = "[" ++ show pt ++ "]"
   show (Func dom ran) = "(" ++ unwords (map (\t -> show t ++ "→") dom) ++ show ran ++ ")"
-  show (Constructor tconstr types) = show tconstr ++ "<" ++ unwords (map show types) ++ ">"
+  show (Constructor tconstr types) = show tconstr ++ "<" ++ intercalate ", " (map show types) ++ ">"
 
-data Identifier = Identifier String
-instance Show Identifier where show (Identifier s) = s
+type Identifier = String
 
 data Function = Function { name :: String, domain :: [Type], range :: Type }
 instance Show Function where show = name
@@ -48,6 +56,8 @@ data Term
   | Var Identifier Type
   | Abstraction [Identifier] Term
   | Application Function [Term]
+  | Pair Term Term
+  | Binary String Term Term
 
 instance Show Term where
   show (Hole pt)     = "_" ++ show pt ++ "_"
@@ -55,20 +65,30 @@ instance Show Term where
   show (Var ident t) = show ident ++ ": " ++ show t
   show (Abstraction args term) = "(λ " ++ unwords (map show args) ++ " → " ++ show term ++ ")"
   show (Application f args) = show f ++ " " ++ unwords (map (\a -> "(" ++ show a ++ ")") args)
+  show (Pair t1 t2) = "(" ++ show t1 ++ ", " ++ show t2
+  show (Binary op t1 t2) = show t1 ++ " " ++ op ++ " " ++ show t2
 
 functions :: [Function]
 functions = [Function { name    = "List.build",
                         domain  = [List (Prim (Poly "t"))],
                         range   = Constructor MyList [Prim (Poly "t")] },
              Function { name    = "List.map",
-                        domain   = [Func [Prim (Poly "t")] (Prim (Poly "t")), Constructor MyList [Prim (Poly "t")]],
-                        range    = Constructor MyList [Prim (Poly "t")] },
+                        domain  = [Func [Prim (Poly "t")] (Prim (Poly "t")), Constructor MyList [Prim (Poly "t")]],
+                        range   = Constructor MyList [Prim (Poly "t")] },
              Function { name    = "List.concat",
-                        domain   = [Constructor MyList [Prim (Poly "t")], Constructor MyList [Prim (Poly "t")]],
-                        range    = Constructor MyList [Prim (Poly "t")] },
+                        domain  = [Constructor MyList [Prim (Poly "t")], Constructor MyList [Prim (Poly "t")]],
+                        range   = Constructor MyList [Prim (Poly "t")] },
              Function { name    = "List.content",
-                        domain   = [Constructor MyList [Prim (Poly "t")]],
-                        range    = List (Prim (Poly "t")) }
+                        domain  = [Constructor MyList [Prim (Poly "t")]],
+                        range   = List (Prim (Poly "t")) },
+
+             Function { name    = "filter",
+                        domain  = [Func [Prim (Poly "t")] (Prim Bool), List (Prim (Poly "t"))],
+                        range   = List (Prim (Poly "t")) },
+
+             Function { name    = "Map.build",
+                        domain  = [Func [Prim (Poly "k")] (Prim (Poly "v")), List (Prim (Poly "k"))],
+                        range   = Constructor MyMap [Prim (Poly "k"), Prim (Poly "v")] }
             ]
 
 functionsMap :: Map.Map String Function
@@ -132,8 +152,8 @@ functionsByRange :: Type -> [Function]
 functionsByRange ran = mapMaybe (specifyFunction ran) functions
 
 freshvar :: [Term] -> Type -> Identifier
-freshvar env _ = Identifier ("x" ++ show i) where
-  i = length $ filter (\t -> case t of Var _ _ -> True; _ -> False) env
+freshvar env _ = "x" ++ show i where
+  i = length $ filter (\case Var _ _ -> True; _ -> False) env
 
 data Env = Env { variables :: [Term], usedFuncs :: Map.Map String Int }
 
