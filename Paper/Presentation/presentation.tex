@@ -1,0 +1,388 @@
+\documentclass[14pt]{beamer}
+\usepackage[T2A]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[english,russian]{babel}
+\usepackage{amssymb,amsfonts,amsmath,mathtext}
+\usepackage{cite,enumerate,float,indentfirst}
+
+\usepackage{listings}
+
+\lstdefinelanguage{Synthesizer}
+{
+  morekeywords={ Int, String, Bool, record, Collection, query, update, or, and, map, filter, mapFilter, foldr },
+  morecomment=[l]{--}, % l is for line comment
+  morecomment=[s]{/*}{*/}, % s is for start and end delimiter
+  morestring=[b]" % defines that strings are enclosed in double quotes
+}
+
+\lstdefinelanguage{CollectionLang}
+{
+  morekeywords={ Int, String, Bool, List, HashMap, HashSet, FenwickTree, Array, Heap, Set, Map },
+  morecomment=[l]{--}, % l is for line comment
+  morecomment=[s]{/*}{*/}, % s is for start and end delimiter
+  morestring=[b]" % defines that strings are enclosed in double quotes
+}
+
+\lstdefinelanguage{SyGuSLang}
+{
+  morekeywords={ Int, String, Bool, List, Map, Set, Obj, Func, map, filter, mapFilter },   morecomment=[s]{/*}{*/}, % s is for start and end delimiter
+  morestring=[b]" % defines that strings are enclosed in double quotes
+
+}
+
+
+\lstdefinelanguage{SolutionLang}
+{
+  morekeywords={ Int, String, Bool, List, Map, Set, filter, map, mapFilter, where, let},
+  morecomment=[l]{--}, % l is for line comment
+  morecomment=[s]{/*}{*/}, % s is for start and end delimiter
+  morestring=[b]" % defines that strings are enclosed in double quotes
+}
+
+\lstdefinestyle{Synth} {
+    language        = Synthesizer,
+    basicstyle      = \footnotesize\ttfamily,
+    identifierstyle = \color{black},
+    commentstyle    = \color{red},
+    keywordstyle    = \color{blue},
+    stringstyle     = \color{red},
+    extendedchars   = true,
+    tabsize         = 4,
+    showspaces      = false,
+    showstringspaces = false,
+    breakautoindent = true,
+    flexiblecolumns = true,
+    keepspaces      = true,
+    stepnumber      = 0,
+    xleftmargin     = 0pt
+}
+
+\lstset{
+    style=Synth,
+    breaklines=false,
+    frame=single,
+    literate ={~~}{$\sim$}1,
+}
+
+
+\usepackage{parcolumns}
+
+
+\graphicspath{{images/}}
+
+\usetheme{Pittsburgh}
+\usecolortheme{whale}
+
+\setbeamercolor{footline}{fg=blue}
+\setbeamertemplate{footline}{
+  \leavevmode%
+  \hbox{%
+  \begin{beamercolorbox}[wd=.333333\paperwidth,ht=2.25ex,dp=1ex,center]{}%
+    Артем Мухин
+  \end{beamercolorbox}%
+  \begin{beamercolorbox}[wd=.333333\paperwidth,ht=2.25ex,dp=1ex,center]{}%
+    Санкт-Петербург, 2017
+  \end{beamercolorbox}%
+  \begin{beamercolorbox}[wd=.333333\paperwidth,ht=2.25ex,dp=1ex,right]{}%
+  Стр. \insertframenumber{} из \inserttotalframenumber \hspace*{2ex}
+  \end{beamercolorbox}}%
+  \vskip0pt%
+}
+
+\newcommand{\itemi}{\item[\checkmark]}
+
+\title{\small{Синтез структур данных}}
+\author{\small{%
+\emph{Выступающий:}~Артем Мухин, 344 гр.\\%
+\emph{Руководитель:}~Дмитрий Мордвинов}\\%
+\vspace{30pt}%
+СПбГУ
+\vspace{20pt}%
+}
+\date{\small{Санкт-Петербург, 2017}}
+
+\begin{document}
+
+\maketitle
+
+\begin{frame}
+\frametitle{Синтез программ}
+Синтез программ --- автоматический поиск программы, удовлетворяющей ограничениям, например:
+\begin{itemize}
+    \item Формальной спецификации
+    \item Примерам ввода-вывода
+    \item Описанию на естественном языке
+    \item Синтаксическому шаблону
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Мотивация}
+\begin{itemize}
+    \item Структуры данных используются повсеместно
+    \item Зачастую нужны структуры, не содержащиеся явно в стандартных библиотеках
+    \begin{itemize}
+        \item Композиции нескольких стандартных структур
+        \item Стандартные структуры с особыми свойствами
+    \end{itemize}
+    \item Программист часто ошибается и выбирает не самые оптимальные варианты
+    \item Хочется, чтобы программист мог только описать требуемую структуру,
+    а компьютер сам синтезировал оптимальную реализацию
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}[fragile]
+\frametitle{Пример-1}
+\begin{itemize}
+  \item Нужна структура данных для хранения графа в виде рёбер и быстрого ответа на запрос "Какие рёбра инцидентны данной вершине?".
+\end{itemize}
+Спецификация:
+\begin{lstlisting}[mathescape=true]
+record Edge { src: Int, dst: Int }
+graph: Collection<Edge>
+query findEdges(node: Int) =
+    filter ($\lambda$e. e.src = node or e.dst = node) graph
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Пример-2}
+Возможные решения:
+\begin{itemize}
+    \item Связный список. Выполнение запроса за O(n).
+    \item Два \texttt{HashMap<Int, List<Edge>}:
+    \begin{itemize}
+        \item пары вида (src, все ребра из src)
+        \item пары вида (dst, все ребра в dst)
+    \end{itemize}.
+    Выполнение запроса за O(1).
+\end{itemize}
+Синтезатор перебирает все возможные «решения» и выбирает из них оптимальное.
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Пример-3}
+В итоге синтезатор генерирует такой код:
+\begin{lstlisting}[language=Java]
+public class Graph {
+    public static class Edge {
+        public Edge(int src, int dst) { ... }
+    }
+    
+    public Graph() { ... }
+    public void add(Edge e) { ... }
+    public void remove(Edge e) { ... }
+    public Iterator<Record> findEdges(int node) { ... }
+}
+\end{lstlisting}
+
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Существующее решение -- Cozy (PLDI'16)}
+Cozy умеет решать только небольшое подмножество довольно простых задач (поиск элементов, удовлетворяющих предикату).\\ \\
+Cozy не умеет работать с:
+\begin{itemize}
+\item Более сложными (чем filter) комбинаторами: map, fold
+\item Арифметикой
+\item Нестандартными коллекциями
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Постановка задачи}
+\begin{itemize}
+    \item Спроектировать язык спецификации
+    \item Разработать алгоритм синтеза
+    \item Разработать прототип ядра синтезатора
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}[fragile]
+\frametitle{Структуры данных-1}
+\begin{lstlisting}[language=CollectionLang, mathescape=true]
+* List<T>, Array<T>, Set<T>, Heap<T>
+...
+* Map<K, V>
+Map.build         :: (t $\to$ (K, V)) $\to$ [t] $\to$ Map<K, V>
+Map.get           :: K $\to$ Map<K, V> $\to$ V
+Map.add           :: K $\to$ V $\to$ Map<K, V> $\to$ Map<K, V>
+Map.size          :: Map<K, V> $\to$ Int
+
+* FenwickTree<T>
+FenwickTree.build :: (T$\to$T') $\to$ Array<T> $\to$ FenwickTree<T> 
+FenwickTree.eval  :: Int $\to$ Int $\to$ T'
+FenwickTree.get   :: Int $\to$ T
+\end{lstlisting}
+
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Структуры данных-2}
+\small{
+{\color{blue}Map}.build f ks $\sim$ {\color{blue}map} ($\lambda$k. (k, f k)) ks\\
+{\color{blue}Map}.get key xs $\sim$ {\color{blue}map} snd (filter ($\lambda$(k, v). k = key) xs) \\
+... \\ \\
+}
+
+\small{
+{\color{red}filter} p ({\color{brown}map} f xs)           =  {\color{blue}mapFilter} (p . f) f xs \\
+{\color{brown}map} f ({\color{red}filter} p xs)           =  {\color{blue}mapFilter} p     f xs \\
+{\color{red}filter} p' ({\color{blue}mapFilter} p f xs)  =  {\color{blue}mapFilter} ($\lambda$x. p x $\And$ p' x) f xs \\
+{\color{brown}map} f' ({\color{blue}mapFilter} p f xs)     =  {\color{blue}mapFilter} p (f' . f) xs \\
+{\color{blue}mapFilter} p f ({\color{red}filter} p' xs)  =  {\color{blue}mapFilter} ($\lambda$x. p x $\And$ p' x) f xs \\
+{\color{blue}mapFilter} p f ({\color{brown}map} f' xs)     =  {\color{blue}mapFilter} (p . f') (f . f') xs \\
+}
+\\
+\begin{itemize}
+\item Синтезатор строит решение в терминах операций над коллекциями
+\item Для верификации решение сначала переписывается в терминах {\color{blue}mapFilter}-преобразований над списками
+\end{itemize}
+\end{frame}
+
+
+
+\begin{frame}[fragile]
+\frametitle{Пример преобразования}
+Решение в терминах операций над коллекциями:
+\begin{lstlisting}[language=SolutionLang, mathescape=true]
+let table: Map<Int, List<Edge>> = Map.build ($\lambda$e.
+    (e.src, filter ($\lambda$e'. e'.src = e.src) graph)) graph
+findEdges n = Map.get n table
+\end{lstlisting}
+
+Редукция к {\color{blue}mapFilter}:
+\begin{lstlisting}[language=SolutionLang, mathescape=true]
+findEdges n
+~~ map snd (filter ($\lambda$(src, _). src = n) (map ($\lambda$e.
+    (e.src, filter ($\lambda$e'. e'.src = e.src) graph)) graph))
+~~ mapFilter ($\lambda$e. e.src = n) (filter ($\lambda$e'.
+    e'.src = e.src) graph) graph
+\end{lstlisting}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Перебор и верификация кандидатов}
+\begin{itemize}
+    \item Явный перебор и проверка с помощью SMT-решателей (подход Cozy и др.)
+    \item \textbf{Сведение задачи перебора и верификации к SyGuS}
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Syntax-Guided Synthesis (SyGuS)}
+SyGuS-синтезаторы строят программы, удовлетворяющие:
+\begin{itemize}
+    \item синтаксической спецификации (грамматике)
+    \item семантической спецификации (формуле логики первого порядка)
+\end{itemize}
+SyGuS Competition проводится каждый год начиная с 2014 г.
+\end{frame}
+
+
+\begin{frame}[fragile]
+\frametitle{Построение грамматики для SyGuS}
+\begin{lstlisting}[language=SyGuSLang, mathescape=true]
+List<Edge>     ::= graph | Map<K, List<Edge>>.get
+Map<K,V>.get ::= map snd (filter($\lambda$(k,v).k=Obj<K>) Map<K,V>)
+Map<K,V>       ::= Map<K,V>.build
+Map<K,V>.build ::= map ($\lambda$k. (k, Func<K,V> k)) List<K>
+...
+\end{lstlisting}
+Специализируем и редуцируем грамматику:
+\begin{lstlisting}[language=SyGuSLang, mathescape=true]
+map snd (filter ($\lambda$(k,v). k = Obj<K>) Map<K, List<Edge>>) $\sim$
+
+map snd (filter ($\lambda$(k,v). k = Obj<K>) (map ($\lambda$k.
+    (k, Func<K,List<Edge>> k)) List<K>)) $\sim$
+
+mapFilter ($\lambda$(k,v). k = Obj<K>) snd (map ($\lambda$k.
+    (k, Func<K,List<Edge>>)) List<K) $\sim$
+
+mapFilter ($\lambda$(k,v). k = Obj<K>) Func<K,List<Edge>> List<K>
+\end{lstlisting}
+\end{frame}
+
+
+\begin{frame}[fragile]
+\frametitle{Построение ограничений для SyGuS}
+
+\begin{lstlisting}[language=SyGuSLang, mathescape=true]
+/* specification */
+mapFilter ($\lambda$e. e.src = n) id graph
+/* candidate */
+mapFilter ($\lambda$(k,v).k = Obj<Int>) Func<Int,List<Edge>> graph
+\end{lstlisting}
+
+
+\begin{lstlisting}[language=SyGuSLang, mathescape=true]
+mapFilter p f xs $\sim$ mapFilter p' f' xs
+$\forall x: p(x) \leftrightarrow p'(x) \And p(x) \rightarrow (f(x) = f'(x))$
+\end{lstlisting}
+
+В итоге SyGuS приходит решению:
+\begin{lstlisting}[language=SyGuSLang, mathescape=true]
+mapFilter ($\lambda$e. e.src = n) ($\lambda$e. filter ($\lambda$e'.
+    e'.src = e.src) graph) graph
+\end{lstlisting}
+
+Которое эквивалентно:
+\begin{lstlisting}[language=SolutionLang, mathescape=true]
+Map.get n (Map.build ($\lambda$e. (e.src, filter ($\lambda$e'.
+    e'.src = e.src) graph) ) graph)
+\end{lstlisting}
+\end{frame}
+
+
+
+\begin{frame}
+\frametitle{Реализация}
+Парсер языка спецификации реализован с помощью монадических парсер-комбинаторов (библиотека \textbf{parsec} языка Haskell)
+\begin{itemize}
+    \item Парсер $=$ примитивные парсеры $+$ комбинаторы парсеров
+    \item Преимущества: простота, гибкость, выразительность
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Реализация}
+Для языка спецификации реализованы:
+\begin{itemize}
+    \item Pretty-printer
+    \item Редукция (map, filter $\to$ mapFilter)
+    \item Вывод типов (основанный на алгоритме Хиндли-Милнера)
+    \item Сведение к SyGuS
+    \item Конвертация в JSON для последующей обработки генератором кода
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Результаты}
+\begin{itemize}
+    \item Спроектирован декларативный язык спецификации структур данных
+    \item Разработан алгоритм синтеза на основе редукции и сведения к SyGuS
+    \item Разработан прототип ядра синтезатора, включающий в себя: парсер, вывод типов, редукцию, генерацию программ, конвертацию программ в JSON, сведение к SyGuS
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Планы на будущее}
+\begin{itemize}
+    \item Добавить поддержку fold
+    \item Добавить больше структур данных и операций над ними
+    \item Сравнить полученный синтезатор с существующими
+\end{itemize}
+\end{frame}
+
+
+\end{document}
