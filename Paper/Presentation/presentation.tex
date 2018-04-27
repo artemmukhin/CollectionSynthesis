@@ -263,8 +263,8 @@ findEdges n = Map.get n table
 findEdges n
 ~~ map snd (filter ($\lambda$(src, _). src = n) (map ($\lambda$e.
     (e.src, filter ($\lambda$e'. e'.src = e.src) graph)) graph))
-~~ mapFilter ($\lambda$e. e.src = n) (filter ($\lambda$e'.
-    e'.src = e.src) graph) graph
+~~ mapFilter ($\lambda$e. e.src = n) (mapFilter ($\lambda$e'.
+    e'.src = e.src) id graph) graph
 \end{lstlisting}
 \end{frame}
 
