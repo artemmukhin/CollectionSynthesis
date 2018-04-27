@@ -4,6 +4,7 @@
 \usepackage[english,russian]{babel}
 \usepackage{amssymb,amsfonts,amsmath,mathtext}
 \usepackage{cite,enumerate,float,indentfirst}
+\usepackage{svg}
 
 \usepackage{listings}
 
@@ -183,9 +184,9 @@ public class Graph {
 \begin{frame}
 \frametitle{Существующее решение -- Cozy (PLDI'16)}
 Cozy умеет решать только небольшое подмножество довольно простых задач (поиск элементов, удовлетворяющих предикату).\\ \\
-Cozy не умеет работать с:
+Cozy \textbf{не} умеет работать с:
 \begin{itemize}
-\item Более сложными (чем filter) комбинаторами: map, fold
+\item Более сложными комбинаторами: map, fold
 \item Арифметикой
 \item Нестандартными коллекциями
 \end{itemize}
@@ -224,6 +225,7 @@ FenwickTree.get   :: Int $\to$ T
 
 \begin{frame}
 \frametitle{Структуры данных-2}
+% Любые преобразования над коллекциями можно выразить через map, filter и foldr.
 \small{
 {\color{blue}Map}.build f ks $\sim$ {\color{blue}map} ($\lambda$k. (k, f k)) ks\\
 {\color{blue}Map}.get key xs $\sim$ {\color{blue}map} snd (filter ($\lambda$(k, v). k = key) xs) \\
@@ -372,6 +374,13 @@ Map.get n (Map.build ($\lambda$e. (e.src, filter ($\lambda$e'.
     \item Разработан алгоритм синтеза на основе редукции и сведения к SyGuS
     \item Разработан прототип ядра синтезатора, включающий в себя: парсер, вывод типов, редукцию, генерацию программ, конвертацию программ в JSON, сведение к SyGuS
 \end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Архитектура синтезатора}
+\begin{center}
+  \makebox[\textwidth]{\includegraphics[width=\paperwidth]{diag.png}}
+\end{center}
 \end{frame}
 
 
